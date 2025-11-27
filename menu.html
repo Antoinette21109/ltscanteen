@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Literacy Tree School Canteen</title>
+    <meta name="description" content="View our nutritious menu options for your children at Literacy Tree School Canteen.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Include all the CSS variables and styles from your main page */
+        /* CSS Variables */
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --secondary: #ff9800;
+            --secondary-dark: #f57c00;
+            --accent: #2196f3;
+            --text: #333333;
+            --text-light: #666666;
+            --background: #f5f5f5;
+            --white: #ffffff;
+            --error: #f44336;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+            --container-max-width: 1200px;
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+        }
+
+        h4 {
+            font-size: 1.5rem;
+        }
+
+        h5 {
+            font-size: 1.25rem;
+        }
+
+        h6 {
+            font-size: 1rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 0;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        /* Menu Section */
+        .menu-section {
+            padding: 60px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            max-width: 700px;
+            margin: 0 auto;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .menu-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            background-color: var(--white);
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+              
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+        
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .menu-item {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .menu-item-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: var(--transition);
+        }
+
+        .menu-item:hover .menu-item-img {
+            transform: scale(1.05);
+        }
+
+        .menu-item-content {
+            padding: 20px;
+        }
+
+        .menu-item-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .menu-item-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .menu-item-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--secondary);
+            color: var(--white);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .menu-item-info {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .menu-item-info small {
+            color: var(--text-light);
+            font-size: 12px;
+        }
+
+        .menu-item-info i {
+            margin-right: 5px;
+            width: 12px;
+        }
+
+        .menu-nutrition {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .menu-nutrition h5 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .nutrition-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .nutrition-tag {
+            padding: 3px 8px;
+            background-color: rgba(46, 125, 50, 0.1);
+            color: var(--primary);
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-column h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 2px;
+            background-color: var(--secondary);
+            bottom: -8px;
+            left: 0;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+            padding-left: 5px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .menu-section {
+                padding: 40px 0;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-leaf" style="font-size: 32px; color: var(--primary); margin-right: 10px;"></i>
+                    <h1>Literacy Tree Canteen</h1>
+                </div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="menu.html" style="color: var(--primary);">Menu</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="index.html" class="btn btn-outline">Login</a></li>
+                    </ul>
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Section -->
+    <section class="menu-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Menu</h2>
+                <p>We offer a variety of nutritious and delicious meals for your children. All our meals are prepared with fresh ingredients and balanced nutrition in mind.</p>
+            </div>
+
+            <div class="menu-categories">
+                <button class="category-btn active" data-category="all">All Items</button>
+                <button class="category-btn" data-category="meals">Meals</button>
+                <button class="category-btn" data-category="drinks">Drinks</button>
+                <button class="category-btn" data-category="snacks">Snacks</button>
+                <button class="category-btn" data-category="fruits">Fruits</button>
+                <button class="category-btn" data-category="treats">Weekly Treats</button>
+            </div>
+
+            <div class="menu-grid">
+                <!-- Menu Items -->
+                <div class="menu-item card" data-category="meals">
+                    <div class="menu-item-badge">Popular</div>
+                    <img src="https://www.healthylifetrainer.com/wp-content/uploads/2021/06/Baked-Chicken-And-Rice-One-Pot-Recipe-07-720x973.jpg" alt="Chicken and Rice" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Chicken and Rice</h3>
+                        <div class="menu-item-price">ZMW 25</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 350 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">High Protein</span>
+                                <span class="nutrition-tag">Low Fat</span>
+                                <span class="nutrition-tag">Gluten-Free Option</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="meals">
+                    <img src="https://alchetron.com/cdn/nshima-a1814c6b-6807-4cbd-aee9-6752cae5374-resize-750.png" alt="Beef Stew with Nshima" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Beef Stew with Nshima</h3>
+                        <div class="menu-item-price">ZMW 30</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 420 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">High Protein</span>
+                                <span class="nutrition-tag">Iron Rich</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="meals">
+                    <div class="menu-item-badge">Vegetarian</div>
+                    <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1481&q=80" alt="Vegetable Pizza" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Vegetable Pizza</h3>
+                        <div class="menu-item-price">ZMW 35</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 380 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Vitamin Rich</span>
+                                <span class="nutrition-tag">Fiber Rich</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="drinks">
+                    <img src="https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80" alt="Fruit Juice" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Fresh Fruit Juice</h3>
+                        <div class="menu-item-price">ZMW 10</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 120 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Vitamin C</span>
+                                <span class="nutrition-tag">No Added Sugar</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="drinks">
+                    <img src="https://tse1.mm.bing.net/th/id/OIP.dJLYcEq_m1pWQS9HV_0fqQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Bottled Water" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Bottled Water</h3>
+                        <div class="menu-item-price">ZMW 5</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 0 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Hydrating</span>
+                                <span class="nutrition-tag">Mineral Rich</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="drinks">
+                    <img src="https://bigoven-res.cloudinary.com/image/upload/t_recipe-1280/diabetic-strawberry-banana-milkshak.jpg" alt="Milk Shake" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Milk Shake</h3>
+                        <div class="menu-item-price">ZMW 15</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 280 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains dairy</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Calcium Rich</span>
+                                <span class="nutrition-tag">Protein Source</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="snacks">
+                    <img src="https://www.tastingtable.com/img/gallery/the-potato-tip-you-should-follow-for-homemade-french-fries/l-intro-1682531792.jpg" alt="Chips" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Fries</h3>
+                        <div class="menu-item-price">ZMW 12</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 220 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Low Sodium Option</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="snacks">
+                    <img src="https://images.unsplash.com/photo-1485451456034-3f9391c6f769?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Sandwich" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Sandwich</h3>
+                        <div class="menu-item-price">ZMW 18</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 260 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Protein Source</span>
+                                <span class="nutrition-tag">Whole Wheat Option</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="fruits">
+                    <div class="menu-item-badge">Organic</div>
+                    <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" alt="Apple" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Fresh Apple</h3>
+                        <div class="menu-item-price">ZMW 5</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 95 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Fiber Rich</span>
+                                <span class="nutrition-tag">Vitamin C</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="fruits">
+                    <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80" alt="Banana" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Banana</h3>
+                        <div class="menu-item-price">ZMW 3</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 105 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Potassium Rich</span>
+                                <span class="nutrition-tag">Energy Source</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="fruits">
+                    <img src="https://images.unsplash.com/photo-1547514701-42782101795e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" alt="Orange" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Orange</h3>
+                        <div class="menu-item-price">ZMW 4</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 62 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Vitamin C</span>
+                                <span class="nutrition-tag">Fiber Rich</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="treats">
+                    <div class="menu-item-badge">Friday Special</div>
+                    <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Ice Cream" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Ice Cream</h3>
+                        <div class="menu-item-price">ZMW 15</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 250 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains dairy</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Calcium Source</span>
+                                <span class="nutrition-tag">Available Fridays Only</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="menu-item card" data-category="treats">
+                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1389&q=80" alt="Chocolate Cake" class="menu-item-img">
+                    <div class="menu-item-content">
+                        <h3 class="menu-item-title">Chocolate Cake</h3>
+                        <div class="menu-item-price">ZMW 20</div>
+                        <div class="menu-item-info">
+                            <small><i class="fas fa-fire"></i> 350 calories</small>
+                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
+                        </div>
+                        <div class="menu-nutrition">
+                            <h5>Nutritional Highlights</h5>
+                            <div class="nutrition-tags">
+                                <span class="nutrition-tag">Weekly Treat</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-block">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Literacy Tree School</h3>
+                    <p>Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="menu.html">Menu</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Info</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Makeni Bonaventure Area, Lusaka, Zambia</li>
+                        <li><i class="fas fa-phone" style="margin-right: 10px;"></i> +260 123 456 789</li>
+                        <li><i class="fas fa-envelope" style="margin-right: 10px;"></i> info@literacytree.edu.zm</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Category filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            const menuItems = document.querySelectorAll('.menu-item');
+
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active category button
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const category = this.getAttribute('data-category');
+
+                    // Filter menu items
+                    menuItems.forEach(item => {
+                        if (category === 'all' || item.getAttribute('data-category') === category) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Add to cart buttons
+            const addToCartBtns = document.querySelectorAll('.menu-item .btn');
+            addToCartBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemName = this.closest('.menu-item-content').querySelector('.menu-item-title').textContent;
+                    
+                    // Create a simple notification
+                    const notification = document.createElement('div');
+                    notification.style.position = 'fixed';
+                    notification.style.bottom = '20px';
+                    notification.style.right = '20px';
+                    notification.style.backgroundColor = 'var(--success)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '15px 20px';
+                    notification.style.borderRadius = 'var(--radius)';
+                    notification.style.boxShadow = 'var(--shadow-hover)';
+                    notification.style.zIndex = '1000';
+                    notification.textContent = `${itemName} added to cart!`;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Remove notification after 3 seconds
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateX(120%)';
+                        notification.style.transition = 'all 0.3s ease';
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 300);
+                    }, 3000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
