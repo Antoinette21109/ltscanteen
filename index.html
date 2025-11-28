@@ -404,40 +404,45 @@
             color: var(--primary);
         }
 
-        /* Hero Section */
+        /* Hero Section with Sliding Images */
         .hero {
-            background: linear-gradient(rgba(46, 125, 50, 0.7), rgba(46, 125, 50, 0.8)), url('https://images.unsplash.com/photo-1606906515935-e9f2a67b4c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-            background-size: cover;
-            background-position: center;
+            position: relative;
             color: var(--white);
             padding: 80px 0;
+            min-height: 500px;
             text-align: center;
-            position: relative;
-            animation: backgroundChange 15s infinite;
+            overflow: hidden;
         }
 
-        @keyframes backgroundChange {
-    0% { 
-        background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-        background-size: cover;
-        background-position: center;
-    }
-    33% { 
-        background-image: url('https://images.unsplash.com/photo-1606906515935-e9f2a67b4c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-        background-size: cover;
-        background-position: center;
-    }
-    66% { 
-        background-image: url('https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-        background-size: cover;
-        background-position: center;
-    }
-    100% { 
-        background-image: url('https://images.unsplash.com/photo-1556911220-bffbb73024b1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
-        background-size: cover;
-        background-position: center;
-    }
-}
+        .hero-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
 
         .hero h2 {
             font-size: 42px;
@@ -456,6 +461,58 @@
         .hero .btn {
             animation: fadeInUp 0.8s ease 0.4s;
             animation-fill-mode: both;
+        }
+
+        /* Slider Controls */
+        .slider-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            gap: 10px;
+        }
+
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .slider-dot.active {
+            background-color: var(--white);
+        }
+
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 2;
+        }
+
+        .slider-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .slider-prev {
+            left: 20px;
+        }
+
+        .slider-next {
+            right: 20px;
         }
 
         @keyframes fadeInUp {
@@ -1593,13 +1650,46 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Sliding Images -->
     <section class="hero" id="home">
-        <div class="container">
-            <h2>Welcome to Literacy Tree School Canteen</h2>
-            <p>Order nutritious meals for your children with ease. Our online canteen system makes it simple for parents
-                to order and pay for meals from anywhere.</p>
-            <a href="#" class="btn btn-secondary" id="get-started-btn">Get Started</a>
+        <div class="hero-slider">
+            <!-- Slide 1 -->
+            <div class="hero-slide active" style="background-image: url('https://thumbs.dreamstime.com/z/bottles-assorted-global-soft-drinks-poznan-poland-jan-drink-market-dominated-brands-few-multinational-companies-founded-84819231.jpg');"></div>
+            
+            <!-- Slide 2 -->
+            <div class="hero-slide" style="background-image: url('https://i.postimg.cc/66ZYv8m2/close-up-fast-food-meal.jpg');"></div>
+            
+            <!-- Slide 3 -->
+            <div class="hero-slide" style="background-image: url('https://img.freepik.com/premium-photo/assortment-exotic-fruits-isolated-white_392895-367827.jpg?w=2000');"></div>
+            
+            <!-- Slide 4 -->
+            <div class="hero-slide" style="background-image: url('https://www.trainingpartnersinc.com/wp-content/uploads/2022/07/water1-1080x675.jpg');"></div>
+        </div>
+        
+
+        
+        <div class="hero-content">
+            <div class="container">
+                <h2>Welcome to Literacy Tree School Canteen</h2>
+                <p>Order nutritious meals for your children with ease. Our online canteen system makes it simple for parents
+                    to order and pay for meals from anywhere.</p>
+                <a href="#" class="btn btn-secondary" id="get-started-btn">Get Started</a>
+            </div>
+        </div>
+        
+        <!-- Slider Controls -->
+        <div class="slider-controls">
+            <div class="slider-dot active" data-slide="0"></div>
+            <div class="slider-dot" data-slide="1"></div>
+            <div class="slider-dot" data-slide="2"></div>
+            <div class="slider-dot" data-slide="3"></div>
+        </div>
+        
+        <div class="slider-arrow slider-prev">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="slider-arrow slider-next">
+            <i class="fas fa-chevron-right"></i>
         </div>
     </section>
 
@@ -2090,7 +2180,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+        <script>
         // Sample data for demonstration
         const menuItems = [
             { id: 1, name: "Chicken and Rice", category: "meals", price: 25, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80", calories: 350, allergens: ["None"], badge: "Popular" },
@@ -2139,7 +2229,7 @@
         const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const loginBtn = document.getElementById('login-btn');
         const mobileLoginBtn = document.getElementById('mobile-login-btn');
-        const getStartedBtn = document.getElementById('get-started-btn');
+        const getStartedBtn = document.getElementById('get-started-btn'); // Corrected ID
         const authSection = document.getElementById('auth-section');
         const authTabs = document.querySelectorAll('.auth-tab');
         const authForms = document.querySelectorAll('.auth-form');
@@ -2173,6 +2263,9 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function () {
+            // Initialize slider functionality
+            initSlider();
+
             // Mobile menu toggle
             mobileMenuToggle.addEventListener('click', function () {
                 this.classList.toggle('active');
@@ -2180,8 +2273,6 @@
                 mobileNavOverlay.classList.toggle('active');
                 document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
             });
-
-
 
             // Close menu when clicking overlay
             mobileNavOverlay.addEventListener('click', closeMobileMenu);
@@ -2203,7 +2294,6 @@
                 }
             });
 
-
             // Login buttons
             loginBtn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -2216,7 +2306,6 @@
                 }
                 showAuthSection();
             });
-
 
             getStartedBtn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -2241,54 +2330,6 @@
                     });
                 });
             });
-
-            // Close mobile menu
-            function closeMobileMenu() {
-                mobileMenuToggle.classList.remove('active');
-                mobileNav.classList.remove('active');
-                mobileNavOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-
-            // Show notification badge (example)
-            function showMobileNotification() {
-                const notification = document.getElementById('hamburger-notification');
-                if (notification) {
-                    notification.style.display = 'block';
-                }
-            }
-
-            // Hide notification badge
-            function hideMobileNotification() {
-                const notification = document.getElementById('hamburger-notification');
-                if (notification) {
-                    notification.style.display = 'none';
-                }
-            }
-
-
-            // Update mobile nav user info when logged in
-            function updateMobileNavUser(user) {
-                const mobileNavUser = document.getElementById('mobile-nav-user');
-                const mobileUserAvatar = document.getElementById('mobile-user-avatar');
-                const mobileUserName = document.getElementById('mobile-user-name');
-                const mobileUserEmail = document.getElementById('mobile-user-email');
-
-                if (user && mobileNavUser) {
-                    mobileNavUser.style.display = 'block';
-
-                    // Set user initials for avatar
-                    const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
-                    mobileUserAvatar.textContent = initials;
-
-                    // Set user details
-                    mobileUserName.textContent = user.name;
-                    mobileUserEmail.textContent = user.email;
-                } else if (mobileNavUser) {
-                    mobileNavUser.style.display = 'none';
-                }
-            }
 
             // Password strength indicator
             const registerPassword = document.getElementById('register-password');
@@ -2653,7 +2694,55 @@
             populateAdminData();
         });
 
+        // Hero Slider Functions
+        function initSlider() {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.slider-dot');
+            const prevBtn = document.querySelector('.slider-prev');
+            const nextBtn = document.querySelector('.slider-next');
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+                currentSlide = index;
+            }
+
+            function nextSlide() {
+                let newSlide = (currentSlide + 1) % slides.length;
+                showSlide(newSlide);
+            }
+
+            function prevSlide() {
+                let newSlide = (currentSlide - 1 + slides.length) % slides.length;
+                showSlide(newSlide);
+            }
+
+            // Auto-advance slides every 5 seconds
+            setInterval(nextSlide, 5000);
+
+            // Event listeners for controls
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+
+            // Event listeners for dots
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => showSlide(index));
+            });
+        }
+
         // Functions
+        function closeMobileMenu() {
+            mobileMenuToggle.classList.remove('active');
+            mobileNav.classList.remove('active');
+            mobileNavOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
         function showHomePage() {
             hideAllSections();
             document.querySelector('.hero').style.display = 'block';
@@ -3273,404 +3362,6 @@
                 toast.classList.remove('show');
             }, 3000);
         }
-
-        // Add CSS for menu item info
-        const style = document.createElement('style');
-        style.textContent = `
-            .menu-item-info {
-                margin: 10px 0;
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .menu-item-info small {
-                color: var(--text-light);
-                font-size: 12px;
-            }
-            
-            .menu-item-info i {
-                margin-right: 5px;
-                width: 12px;
-            }
-            
-            .status-badge {
-                padding: 5px 10px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-            }
-            .status-badge.pending {
-                background-color: var(--warning);
-                color: white;
-            }
-            .status-badge.completed {
-                background-color: var(--success);
-                color: white;
-            }
-            .status-badge.active {
-                background-color: var(--primary);
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Add smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return; // Prevent empty hash links
-
-                const target = document.querySelector(targetId);
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Add form validation styles
-        const validationStyle = document.createElement('style');
-        validationStyle.textContent = `
-            .form-control:invalid {
-                border-color: var(--error);
-            }
-            
-            .form-control:valid {
-                border-color: var(--success);
-            }
-            
-            .btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-        `;
-        document.head.appendChild(validationStyle);
-
-        // Initialize tooltips (if needed)
-        function initializeTooltips() {
-            const tooltipElements = document.querySelectorAll('[data-tooltip]');
-            tooltipElements.forEach(element => {
-                element.addEventListener('mouseenter', function () {
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'tooltip';
-                    tooltip.textContent = this.getAttribute('data-tooltip');
-                    document.body.appendChild(tooltip);
-
-                    const rect = this.getBoundingClientRect();
-                    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-                    tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
-                });
-
-                element.addEventListener('mouseleave', function () {
-                    const tooltip = document.querySelector('.tooltip');
-                    if (tooltip) {
-                        tooltip.remove();
-                    }
-                });
-            });
-        }
-
-        // Initialize tooltips when DOM is ready
-        document.addEventListener('DOMContentLoaded', initializeTooltips);
-
-        // Add print functionality for reports
-        function printReport() {
-            window.print();
-        }
-
-        // Add keyboard shortcuts
-        document.addEventListener('keydown', function (e) {
-            // Ctrl/Cmd + P for print
-            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-                e.preventDefault();
-                printReport();
-            }
-
-            // Escape to close modal
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                closeModal();
-            }
-        });
-
-        // Add data persistence (using localStorage)
-        function saveToLocalStorage(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-
-        function getFromLocalStorage(key) {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : null;
-        }
-
-        // Save user session
-        function saveUserSession() {
-            if (currentUser) {
-                saveToLocalStorage('currentUser', currentUser);
-            }
-            if (currentAdmin) {
-                saveToLocalStorage('currentAdmin', currentAdmin);
-            }
-        }
-
-        // Load user session
-        function loadUserSession() {
-            const savedUser = getFromLocalStorage('currentUser');
-            const savedAdmin = getFromLocalStorage('currentAdmin');
-
-            if (savedAdmin) {
-                currentAdmin = savedAdmin;
-                showAdminDashboard();
-            } else if (savedUser) {
-                currentUser = savedUser;
-                showParentDashboard();
-            }
-        }
-
-        // Check for saved session on page load
-        window.addEventListener('load', function () {
-            loadUserSession();
-        });
-
-        // Save session before page unload
-        window.addEventListener('beforeunload', function () {
-            saveUserSession();
-        });
-
-        // Add search functionality
-        function initializeSearch() {
-            const searchInput = document.createElement('input');
-            searchInput.type = 'text';
-            searchInput.className = 'form-control';
-            searchInput.placeholder = 'Search menu items...';
-            searchInput.style.marginBottom = '20px';
-
-            const menuSection = document.getElementById('menu-section');
-            if (menuSection) {
-                menuSection.querySelector('.container').insertBefore(
-                    searchInput,
-                    menuSection.querySelector('.menu-categories')
-                );
-
-                searchInput.addEventListener('input', function () {
-                    const searchTerm = this.value.toLowerCase();
-                    const filteredItems = menuItems.filter(item =>
-                        item.name.toLowerCase().includes(searchTerm)
-                    );
-
-                    if (searchTerm) {
-                        displayMenuItems('all');
-                        const menuItemsElements = document.querySelectorAll('.menu-item');
-                        menuItemsElements.forEach(itemElement => {
-                            const itemName = itemElement.querySelector('.menu-item-title').textContent.toLowerCase();
-                            if (!itemName.includes(searchTerm)) {
-                                itemElement.style.display = 'none';
-                            }
-                        });
-                    } else {
-                        displayMenuItems('all');
-                    }
-                });
-            }
-        }
-
-        // Initialize search when menu section is shown
-        const originalShowMenuSection = showMenuSection;
-        showMenuSection = function () {
-            originalShowMenuSection();
-            if (!document.querySelector('#menu-section input[placeholder*="Search"]')) {
-                initializeSearch();
-            }
-        };
-
-        // Add dark mode toggle
-        function initializeDarkMode() {
-            const darkModeToggle = document.createElement('button');
-            darkModeToggle.className = 'btn btn-outline';
-            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            darkModeToggle.style.marginLeft = '10px';
-
-            const navLinks = document.querySelector('.nav-links');
-            if (navLinks) {
-                navLinks.appendChild(darkModeToggle);
-
-                darkModeToggle.addEventListener('click', function () {
-                    document.body.classList.toggle('dark-mode');
-                    const isDarkMode = document.body.classList.contains('dark-mode');
-
-                    if (isDarkMode) {
-                        this.innerHTML = '<i class="fas fa-sun"></i>';
-                        document.documentElement.style.setProperty('--background', '#1a1a1a');
-                        document.documentElement.style.setProperty('--text', '#ffffff');
-                        document.documentElement.style.setProperty('--text-light', '#cccccc');
-                        document.documentElement.style.setProperty('--white', '#2a2a2a');
-                    } else {
-                        this.innerHTML = '<i class="fas fa-moon"></i>';
-                        document.documentElement.style.setProperty('--background', '#f5f5f5');
-                        document.documentElement.style.setProperty('--text', '#333333');
-                        document.documentElement.style.setProperty('--text-light', '#666666');
-                        document.documentElement.style.setProperty('--white', '#ffffff');
-                    }
-
-                    saveToLocalStorage('darkMode', isDarkMode);
-                });
-
-                // Load dark mode preference
-                const savedDarkMode = getFromLocalStorage('darkMode');
-                if (savedDarkMode) {
-                    darkModeToggle.click();
-                }
-            }
-        }
-
-        // Initialize dark mode
-        initializeDarkMode();
-
-        // Add accessibility features
-        function initializeAccessibility() {
-            // Add skip to main content link
-            const skipLink = document.createElement('a');
-            skipLink.href = '#main-content';
-            skipLink.textContent = 'Skip to main content';
-            skipLink.className = 'skip-link';
-            skipLink.style.cssText = `
-        position: absolute;
-        top: -40px;
-        left: 0;
-        background: var(--primary);
-        color: white;
-        padding: 8px;
-        text-decoration: none;
-        z-index: 1000;
-    `;
-
-            skipLink.addEventListener('focus', function () {
-                this.style.top = '0';
-            });
-
-            skipLink.addEventListener('blur', function () {
-                this.style.top = '-40px';
-            });
-
-            document.body.insertBefore(skipLink, document.body.firstChild);
-
-            // Add ARIA labels to interactive elements
-            document.querySelectorAll('button').forEach(button => {
-                if (!button.getAttribute('aria-label') && button.textContent.trim()) {
-                    button.setAttribute('aria-label', button.textContent.trim());
-                }
-            });
-        }
-
-        // Initialize accessibility features
-        initializeAccessibility();
-
-        // Add error handling
-        window.addEventListener('error', function (e) {
-            console.error('An error occurred:', e.error);
-            showToast('An unexpected error occurred. Please try again.', 'error');
-        });
-
-        // Add performance monitoring
-        function trackPageLoad() {
-            window.addEventListener('load', function () {
-                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                console.log(`Page load time: ${loadTime}ms`);
-
-                // Track performance metrics
-                if (window.gtag) {
-                    gtag('event', 'page_load_time', {
-                        'value': loadTime
-                    });
-                }
-            });
-        }
-
-        // Initialize performance tracking
-        trackPageLoad();
-
-        // Add analytics tracking
-        function trackUserAction(action, label) {
-            if (window.gtag) {
-                gtag('event', action, {
-                    'event_category': 'User Interaction',
-                    'event_label': label
-                });
-            }
-        }
-
-        // Track button clicks
-        document.querySelectorAll('.btn').forEach(button => {
-            button.addEventListener('click', function () {
-                trackUserAction('button_click', this.textContent);
-            });
-        });
-
-        // Add service worker for offline support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function (registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(function (error) {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
-        }
-
-        function safeQuerySelector(selector) {
-            if (!selector || selector === '#' || selector.trim() === '') {
-                console.warn('Invalid selector provided to querySelector:', selector);
-                return null;
-            }
-            return document.querySelector(selector);
-        }
-
-        // And for querySelectorAll
-        function safeQuerySelectorAll(selector) {
-            if (!selector || selector === '#' || selector.trim() === '') {
-                console.warn('Invalid selector provided to querySelectorAll:', selector);
-                return [];
-            }
-            return document.querySelectorAll(selector);
-        }
-        // Add progressive web app features
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', function (e) {
-            e.preventDefault();
-            deferredPrompt = e;
-
-            // Show install button
-            const installBtn = document.createElement('button');
-            installBtn.className = 'btn btn-secondary';
-            installBtn.textContent = 'Install App';
-            installBtn.style.position = 'fixed';
-            installBtn.style.bottom = '20px';
-            installBtn.style.right = '20px';
-            installBtn.style.zIndex = '1000';
-
-            installBtn.addEventListener('click', function () {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(function (choiceResult) {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the A2HS prompt');
-                    } else {
-                        console.log('User dismissed the A2HS prompt');
-                    }
-                    deferredPrompt = null;
-                    document.body.removeChild(installBtn);
-                });
-            });
-
-            document.body.appendChild(installBtn);
-        });
-
-        console.log('Literacy Tree School Canteen System initialized successfully!');
     </script>
 </body>
-
 </html>
