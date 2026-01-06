@@ -1757,6 +1757,63 @@
             }
         }
 
+        /* Mobile Navigation Dark Mode Updates */
+.mobile-nav {
+    background-color: var(--white);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.mobile-nav-header {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--primary);
+    color: var(--white);
+}
+
+.mobile-nav-links li {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-nav-links a {
+    color: var(--text);
+}
+
+.mobile-nav-links a::before {
+    background-color: rgba(46, 125, 50, 0.05);
+}
+
+.mobile-nav-user {
+    border-top: 1px solid var(--border-color);
+    background-color: var(--background);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .mobile-nav {
+        background-color: var(--card-bg);
+        color: var(--text);
+    }
+
+    .mobile-nav-links li {
+        border-bottom-color: var(--border-color);
+    }
+
+    .mobile-nav-links a {
+        color: var(--text);
+    }
+
+    .mobile-nav-links a::before {
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    .mobile-nav-user {
+        background-color: var(--background);
+        border-top-color: var(--border-color);
+    }
+}
+
         /* Animation Classes */
         .slide-in-left {
             animation: slideInLeft 0.3s ease-out;
