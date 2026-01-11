@@ -864,6 +864,146 @@
             .social-links {
                 justify-content: center;
             }
+
+            /* CSS Variables */
+:root {
+    /* Light Mode Variables */
+    --primary: #2e7d32;
+    --primary-dark: #1b5e20;
+    --primary-light: #4caf50;
+    --secondary: #ff9800;
+    --secondary-dark: #f57c00;
+    --accent: #2196f3;
+    --text: #333333;
+    --text-light: #666666;
+    --background: #f5f5f5;
+    --white: #ffffff;
+    --error: #f44336;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
+    --radius: 8px;
+    --transition: all 0.3s ease;
+    --container-max-width: 1200px;
+    --card-bg: #ffffff;
+    --border-color: #ddd;
+    --input-bg: #ffffff;
+    --table-hover: rgba(0, 0, 0, 0.02);
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --primary: #4caf50;
+    --primary-dark: #2e7d32;
+    --primary-light: #81c784;
+    --secondary: #ffb74d;
+    --secondary-dark: #ff9800;
+    --accent: #64b5f6;
+    --text: #e0e0e0;
+    --text-light: #bdbdbd;
+    --background: #121212;
+    --white: #1e1e1e;
+    --error: #ef5350;
+    --success: #66bb6a;
+    --warning: #ffb74d;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
+    --card-bg: #2a2a2a;
+    --border-color: #444;
+    --input-bg: #333;
+    --table-hover: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark Mode Toggle Styles */
+.theme-toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    margin-left: 15px;
+}
+
+.theme-toggle-checkbox {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-toggle-label {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: var(--transition);
+    border-radius: 34px;
+    overflow: hidden;
+}
+
+.theme-toggle-label:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: var(--transition);
+    border-radius: 50%;
+    z-index: 2;
+}
+
+.theme-toggle-checkbox:checked + .theme-toggle-label {
+    background-color: var(--primary);
+}
+
+.theme-toggle-checkbox:checked + .theme-toggle-label:before {
+    transform: translateX(30px);
+}
+
+.theme-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: white;
+    transition: var(--transition);
+    z-index: 1;
+}
+
+.sun-icon {
+    left: 8px;
+}
+
+.moon-icon {
+    right: 8px;
+}
+
+.theme-toggle-checkbox:checked + .theme-toggle-label .sun-icon {
+    opacity: 0;
+}
+
+.theme-toggle-checkbox:not(:checked) + .theme-toggle-label .moon-icon {
+    opacity: 0;
+}
+
+/* Mobile Theme Toggle */
+@media (max-width: 992px) {
+    .theme-toggle {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+    
+    .nav-links li:last-child {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+}
         }
     </style>
 </head>
@@ -1595,6 +1735,77 @@
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
 
+// Add this to your existing JavaScript code
+
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
+
+// 1. Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem('theme');
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    // Set the state of both toggles based on the saved theme
+    if (currentTheme === 'dark') {
+        darkModeToggle.checked = true;
+        mobileDarkModeToggle.checked = true;
+    }
+}
+
+// 2. Define the function to switch the theme
+function switchTheme() {
+    if (darkModeToggle.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// 3. Add event listeners for both toggles
+// When the desktop toggle is changed
+darkModeToggle.addEventListener('change', function() {
+    // Sync the mobile toggle
+    mobileDarkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// When the mobile toggle is changed
+mobileDarkModeToggle.addEventListener('change', function() {
+    // Sync the desktop toggle
+    darkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// 4. Check for system preference if no local theme is set
+const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+// This part runs on the initial page load
+if (prefersDarkScheme.matches && !currentTheme) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    darkModeToggle.checked = true;
+    mobileDarkModeToggle.checked = true;
+}
+
+// (Optional) Listen for changes in system theme preference
+prefersDarkScheme.addEventListener('change', (e) => {
+    // Only change the theme if the user hasn't set a preference in our app
+    if (!localStorage.getItem('theme')) {
+        if (e.matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            darkModeToggle.checked = true;
+            mobileDarkModeToggle.checked = true;
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            darkModeToggle.checked = false;
+            mobileDarkModeToggle.checked = false;
+        }
+    }
+});
         // Mobile menu toggle
         mobileMenuToggle.addEventListener('click', function () {
             this.classList.toggle('active');

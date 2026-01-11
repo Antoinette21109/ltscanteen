@@ -956,6 +956,78 @@
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 observer.observe(el);
+
+                // Add this to your existing JavaScript code
+
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
+
+// 1. Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem('theme');
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    // Set the state of both toggles based on the saved theme
+    if (currentTheme === 'dark') {
+        darkModeToggle.checked = true;
+        mobileDarkModeToggle.checked = true;
+    }
+}
+
+// 2. Define the function to switch the theme
+function switchTheme() {
+    if (darkModeToggle.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// 3. Add event listeners for both toggles
+// When the desktop toggle is changed
+darkModeToggle.addEventListener('change', function() {
+    // Sync the mobile toggle
+    mobileDarkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// When the mobile toggle is changed
+mobileDarkModeToggle.addEventListener('change', function() {
+    // Sync the desktop toggle
+    darkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// 4. Check for system preference if no local theme is set
+const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+// This part runs on the initial page load
+if (prefersDarkScheme.matches && !currentTheme) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    darkModeToggle.checked = true;
+    mobileDarkModeToggle.checked = true;
+}
+
+// (Optional) Listen for changes in system theme preference
+prefersDarkScheme.addEventListener('change', (e) => {
+    // Only change the theme if the user hasn't set a preference in our app
+    if (!localStorage.getItem('theme')) {
+        if (e.matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            darkModeToggle.checked = true;
+            mobileDarkModeToggle.checked = true;
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            darkModeToggle.checked = false;
+            mobileDarkModeToggle.checked = false;
+        }
+    }
+});
             });
         });
     </script>
