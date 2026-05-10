@@ -53,7 +53,7 @@
         .header-actions { display: flex; align-items: center; gap: 20px; }
         .nav-links { display: flex; list-style: none; align-items: center; margin: 0; }
         .nav-links li { margin-left: 25px; }
-        .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; transition: var(--transition); }
+        .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; transition: var(--transition); cursor: pointer; }
         .nav-links a:hover { color: var(--primary); }
 
         .cart-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--secondary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-hover); z-index: 90; cursor: pointer; transition: var(--transition); border: none; }
@@ -99,7 +99,6 @@
         .category-btn { padding: 10px 20px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 30px; cursor: pointer; transition: var(--transition); font-weight: 500; color: var(--text); }
         .category-btn.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
         
-        /* Updated Menu Grid for smaller cards */
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .menu-item { overflow: hidden; position: relative; }
         .menu-item-img { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius) var(--radius) 0 0; transition: var(--transition); }
@@ -168,7 +167,7 @@
                             <li><a href="menu.html">Menu</a></li>
                             <li><a href="about.html">About</a></li>
                             <li><a href="contact.html">Contact</a></li>
-                            <li><a href="#" class="btn btn-outline" id="login-btn">Login</a></li>
+                            <li><a href="#" class="btn btn-outline" id="auth-btn">Login</a></li>
                             <li class="theme-toggle-wrapper">
                                 <div class="theme-toggle">
                                     <input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox">
@@ -200,6 +199,28 @@
             </ul>
         </nav>
     </header>
+
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login Required</h3>
+                <button class="modal-close" id="close-login-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--text-light);">Please log in to add items to your cart and place orders.</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="parent@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-block">Login</button>
+            </form>
+        </div>
+    </div>
 
     <button class="cart-btn" id="cart-toggle"><i class="fas fa-shopping-cart"></i><span class="cart-badge" id="cart-badge" style="display: none;">0</span></button>
 
@@ -339,7 +360,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
+                <p>&copy; 2024 Literacy Tree School. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -350,7 +371,10 @@
         let cart = [];
         let selectedPaymentMethod = null;
         let paymentPollingInterval = null;
+        let currentUser = JSON.parse(localStorage.getItem('canteenUser')) || null;
+        let pendingAction = null; // Tracks what user tried to do before logging in
 
+        // DOM Elements
         const cartToggleBtn = document.getElementById('cart-toggle');
         const cartBadge = document.getElementById('cart-badge');
         const cartSidebar = document.getElementById('cart-sidebar');
@@ -369,7 +393,80 @@
         const ussdInstructions = document.getElementById('ussd-instructions');
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
+        const authBtn = document.getElementById('auth-btn');
+        const loginModal = document.getElementById('login-modal');
+        const closeLoginModalBtn = document.getElementById('close-login-modal');
+        const loginForm = document.getElementById('login-form');
 
+        // ===== AUTH LOGIC =====
+        function updateAuthUI() {
+            if (currentUser) {
+                authBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Logout (${currentUser.name})`;
+                authBtn.classList.remove('btn-outline');
+                authBtn.classList.add('btn-sm');
+                authBtn.onclick = logout;
+            } else {
+                authBtn.innerHTML = 'Login';
+                authBtn.classList.add('btn-outline');
+                authBtn.classList.remove('btn-sm');
+                authBtn.onclick = (e) => { e.preventDefault(); openLoginModal(); };
+            }
+        }
+
+        function openLoginModal(action = null) {
+            pendingAction = action;
+            loginModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLoginModal() {
+            loginModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function logout() {
+            localStorage.removeItem('canteenUser');
+            currentUser = null;
+            updateAuthUI();
+            showToast('Logged out successfully', 'info');
+        }
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (email && password) {
+                const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+                currentUser = { email, name };
+                localStorage.setItem('canteenUser', JSON.stringify(currentUser));
+                updateAuthUI();
+                closeLoginModal();
+                showToast(`Welcome back, ${name}!`, 'success');
+                
+                loginForm.reset();
+
+                // If they were trying to checkout, reopen checkout
+                if (pendingAction === 'checkout') {
+                    setTimeout(() => {
+                        checkoutModal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }, 300);
+                } else if (pendingAction === 'cart') {
+                    showToast('You can now add items to your cart!', 'info');
+                }
+                pendingAction = null;
+            } else {
+                showToast('Please enter email and password', 'error');
+            }
+        });
+
+        closeLoginModalBtn.addEventListener('click', closeLoginModal);
+
+        // Initialize Auth UI on load
+        updateAuthUI();
+
+        // ===== THEME & NAV LOGIC =====
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const currentTheme = localStorage.getItem('theme');
         if (currentTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); darkModeToggle.checked = true; }
@@ -384,6 +481,7 @@
         mobileNavOverlay.addEventListener('click', closeMobileMenu);
         mobileNavClose.addEventListener('click', closeMobileMenu);
 
+        // ===== MENU LOGIC =====
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -394,6 +492,7 @@
                 });
             });
         });
+
         document.getElementById('menu-search').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             document.querySelectorAll('.menu-item').forEach(item => {
@@ -401,6 +500,7 @@
             });
         });
 
+        // ===== CART LOGIC =====
         function updateCartUI() {
             cartBody.innerHTML = '';
             let total = 0;
@@ -424,8 +524,14 @@
             cartTotalPrice.textContent = `K${total}`;
         }
 
+        // Auth Gate on Add to Cart
         document.querySelectorAll('.add-to-cart').forEach(btn => {
             btn.addEventListener('click', function() {
+                if (!currentUser) {
+                    openLoginModal('cart');
+                    showToast('Please login to add items to cart', 'error');
+                    return;
+                }
                 const menuItemContent = this.closest('.menu-item-content');
                 const name = menuItemContent.querySelector('.menu-item-title').textContent;
                 const priceText = menuItemContent.querySelector('.menu-item-price').textContent;
@@ -442,7 +548,20 @@
         closeCartBtn.addEventListener('click', closeCart);
         cartOverlay.addEventListener('click', closeCart);
 
-        checkoutBtn.addEventListener('click', () => { closeCart(); setTimeout(() => { checkoutModal.classList.add('active'); document.body.style.overflow = 'hidden'; }, 300); });
+        // Auth Gate on Checkout
+        checkoutBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                closeCart();
+                setTimeout(() => {
+                    openLoginModal('checkout');
+                    showToast('Please login to proceed to payment', 'error');
+                }, 300);
+                return;
+            }
+            closeCart(); 
+            setTimeout(() => { checkoutModal.classList.add('active'); document.body.style.overflow = 'hidden'; }, 300);
+        });
+        
         closeCheckoutBtn.addEventListener('click', () => { checkoutModal.classList.remove('active'); document.body.style.overflow = ''; if(paymentPollingInterval) clearInterval(paymentPollingInterval); });
 
         paymentOptions.forEach(opt => {
@@ -472,7 +591,7 @@
                 const response = await fetch('/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: cart, paymentMethod: selectedPaymentMethod, customerName: name, phoneNumber: phone }),
+                    body: JSON.stringify({ items: cart, paymentMethod: selectedPaymentMethod, customerName: name, phoneNumber: phone, user: currentUser }),
                 });
 
                 const data = await response.json();
@@ -484,7 +603,7 @@
 
             } catch (error) {
                 console.error('Payment error:', error);
-                showToast(error.message || 'Payment failed.', 'error');
+                showToast(error.message || 'Payment failed. Ensure server is running.', 'error');
                 payNowBtn.innerHTML = 'Pay Now';
                 payNowBtn.disabled = false;
             }
