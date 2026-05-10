@@ -643,9 +643,9 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <img src="school-logo.jpg" alt="Literacy Tree Canteen Logo" style="width: 32px; height: 32px; margin-right: 10px;">
-                    <h1>Literacy Tree Canteen</h1>
-                </div>
+    <img src="/School-logo.webp" alt="Literacy Tree School Logo" style="height: 50px; width: auto; margin-right: 10px;">
+    <h1>Literacy Tree Canteen</h1>
+</div>
                 <nav>
                     <ul class="nav-links">
                         <li><a href="index.html">Home</a></li>
@@ -679,7 +679,7 @@
                     <a href="menu.html" class="btn btn-secondary">View Our Menu</a>
                 </div>
                 <div class="about-image">
-                    <img src="https://tse3.mm.bing.net/th/id/OIP.gSd7gZSBr11EwezG2pvoWgHaE8?w=1600&h=1069&rs=1&pid=ImgDetMain&o=7&rm=3" alt="School Canteen">
+                    <img src="/about-us.jpg" alt="School Canteen">
                 </div>
             </div>
         </div>
@@ -956,6 +956,78 @@
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 observer.observe(el);
+
+                // Add this to your existing JavaScript code
+
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
+
+// 1. Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem('theme');
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    // Set the state of both toggles based on the saved theme
+    if (currentTheme === 'dark') {
+        darkModeToggle.checked = true;
+        mobileDarkModeToggle.checked = true;
+    }
+}
+
+// 2. Define the function to switch the theme
+function switchTheme() {
+    if (darkModeToggle.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// 3. Add event listeners for both toggles
+// When the desktop toggle is changed
+darkModeToggle.addEventListener('change', function() {
+    // Sync the mobile toggle
+    mobileDarkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// When the mobile toggle is changed
+mobileDarkModeToggle.addEventListener('change', function() {
+    // Sync the desktop toggle
+    darkModeToggle.checked = this.checked;
+    // Apply the theme change
+    switchTheme();
+});
+
+// 4. Check for system preference if no local theme is set
+const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+// This part runs on the initial page load
+if (prefersDarkScheme.matches && !currentTheme) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    darkModeToggle.checked = true;
+    mobileDarkModeToggle.checked = true;
+}
+
+// (Optional) Listen for changes in system theme preference
+prefersDarkScheme.addEventListener('change', (e) => {
+    // Only change the theme if the user hasn't set a preference in our app
+    if (!localStorage.getItem('theme')) {
+        if (e.matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            darkModeToggle.checked = true;
+            mobileDarkModeToggle.checked = true;
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            darkModeToggle.checked = false;
+            mobileDarkModeToggle.checked = false;
+        }
+    }
+});
             });
         });
     </script>
