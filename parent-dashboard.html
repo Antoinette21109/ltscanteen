@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - Literacy Tree Canteen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --secondary: #ff9800;
+            --secondary-dark: #f57c00;
+            --accent: #2196f3;
+            --text: #333333;
+            --text-light: #666666;
+            --background: #f5f5f5;
+            --white: #ffffff;
+            --error: #f44336;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+            --card-bg: #ffffff;
+            --border-color: #ddd;
+        }
+
+        [data-theme="dark"] {
+            --primary: #4caf50;
+            --primary-dark: #2e7d32;
+            --text: #e0e0e0;
+            --text-light: #bdbdbd;
+            --background: #121212;
+            --white: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #1a5e20 0%, #0d3b12 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 25px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .sidebar-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 3px solid var(--primary-light);
+        }
+
+        .nav-item i {
+            width: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .welcome h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: var(--text-light);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .children-section {
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .child-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .child-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .child-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .child-card.active {
+            border-color: var(--primary);
+        }
+
+        .child-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+
+        .orders-table {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-completed { background: rgba(76,175,80,0.2); color: #4caf50; }
+        .status-pending { background: rgba(255,152,0,0.2); color: #ff9800; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1100;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--error); }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="/School-logo.webp" alt="Logo" onerror="this.src='https://via.placeholder.com/80'">
+                <h3>Literacy Tree Canteen</h3>
+                <p>Parent Portal</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="nav-item" data-tab="children">
+                    <i class="fas fa-child"></i> My Children
+                </div>
+                <div class="nav-item" data-tab="orders">
+                    <i class="fas fa-shopping-cart"></i> Order History
+                </div>
+                <div class="nav-item" data-tab="wallet">
+                    <i class="fas fa-wallet"></i> Wallet
+                </div>
+                <div class="nav-item" data-tab="settings">
+                    <i class="fas fa-user"></i> Profile
+                </div>
+                <div class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <div class="welcome">
+                    <h2>Welcome back, <span id="parentName">Parent</span>!</h2>
+                    <p>Manage meals for your children easily</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="location.href='menu.html'">
+                        <i class="fas fa-utensils"></i> Order Now
+                    </button>
+                    <i class="fas fa-moon" style="font-size: 20px; cursor: pointer; margin-left: 15px;" onclick="toggleDarkMode()"></i>
+                </div>
+            </div>
+
+            <div id="dashboard-tab" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users" style="font-size: 32px; color: var(--primary);"></i>
+                        <div class="stat-number" id="totalChildren">0</div>
+                        <p>Children</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-shopping-cart" style="font-size: 32px; color: var(--primary);"></i>
+                        <div class="stat-number" id="totalOrders">0</div>
+                        <p>Total Orders</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-wallet" style="font-size: 32px; color: var(--primary);"></i>
+                        <div class="stat-number" id="walletBalance">K0</div>
+                        <p>Wallet Balance</p>
+                    </div>
+                </div>
+
+                <div class="children-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-child"></i> My Children</h3>
+                        <button class="btn btn-outline" onclick="addChild()">+ Add Child</button>
+                    </div>
+                    <div class="child-cards" id="childrenCards"></div>
+                </div>
+
+                <div class="orders-table">
+                    <h3 style="margin-bottom: 20px;">Recent Orders</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Order #</th><th>Child</th><th>Items</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="recentOrdersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"><span id="toastMessage"></span></div>
+
+    <script>
+        // Load parent data from localStorage
+        let parentData = JSON.parse(localStorage.getItem('parentData')) || {
+            name: 'Sarah Johnson',
+            email: 'sarah@example.com',
+            children: [
+                { id: 1, name: 'Emma Johnson', class: 'Grade 3', studentId: 'LTS001', balance: 150 },
+                { id: 2, name: 'Noah Johnson', class: 'Grade 1', studentId: 'LTS002', balance: 75 }
+            ],
+            orders: [
+                { id: 'LTS-20241201-001', childName: 'Emma Johnson', items: 'Chicken & Chips, Water', amount: 70, status: 'completed', date: '2024-12-01' },
+                { id: 'LTS-20241130-002', childName: 'Noah Johnson', items: 'Rice & Beefstew', amount: 65, status: 'completed', date: '2024-11-30' },
+                { id: 'LTS-20241129-003', childName: 'Emma Johnson', items: 'Sausage & Chips, Fanta', amount: 80, status: 'pending', date: '2024-11-29' }
+            ]
+        };
+
+        function loadDashboard() {
+            document.getElementById('parentName').textContent = parentData.name;
+            document.getElementById('totalChildren').textContent = parentData.children.length;
+            document.getElementById('totalOrders').textContent = parentData.orders.length;
+            
+            const totalBalance = parentData.children.reduce((sum, child) => sum + child.balance, 0);
+            document.getElementById('walletBalance').textContent = `K${totalBalance}`;
+
+            // Display children
+            const childrenContainer = document.getElementById('childrenCards');
+            childrenContainer.innerHTML = parentData.children.map(child => `
+                <div class="child-card" onclick="selectChild(${child.id})">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div class="child-avatar"><i class="fas fa-user-graduate"></i></div>
+                        <div>
+                            <h4>${child.name}</h4>
+                            <p>${child.class} • ID: ${child.studentId}</p>
+                        </div>
+                    </div>
+                    <div style="background: rgba(76,175,80,0.1); padding: 10px; border-radius: 8px;">
+                        <strong>Balance:</strong> K${child.balance}
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="event.stopPropagation(); orderForChild(${child.id})">
+                        Order Meal
+                    </button>
+                </div>
+            `).join('');
+
+            // Display recent orders
+            const ordersBody = document.getElementById('recentOrdersBody');
+            ordersBody.innerHTML = parentData.orders.slice(0, 5).map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${order.childName}</td>
+                    <td>${order.items}</td>
+                    <td>K${order.amount}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>${order.date}</td>
+                    <td><button class="btn btn-outline" style="padding: 5px 10px;" onclick="trackOrder('${order.id}')">Track</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function selectChild(childId) {
+            document.querySelectorAll('.child-card').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            localStorage.setItem('selectedChildId', childId);
+        }
+
+        function orderForChild(childId) {
+            const child = parentData.children.find(c => c.id === childId);
+            localStorage.setItem('selectedChild', JSON.stringify(child));
+            window.location.href = 'menu.html';
+        }
+
+        function addChild() {
+            showModal('Add Child', `
+                <form onsubmit="saveChild(event)">
+                    <div class="form-group"><label>Child's Full Name</label><input type="text" id="childName" class="form-control" required></div>
+                    <div class="form-group"><label>Grade/Class</label><input type="text" id="childClass" class="form-control" required></div>
+                    <div class="form-group"><label>Student ID (if available)</label><input type="text" id="studentId" class="form-control"></div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Add Child</button>
+                </form>
+            `);
+        }
+
+        function saveChild(event) {
+            event.preventDefault();
+            const newChild = {
+                id: parentData.children.length + 1,
+                name: document.getElementById('childName').value,
+                class: document.getElementById('childClass').value,
+                studentId: document.getElementById('studentId').value || `LTS${Date.now()}`,
+                balance: 0
+            };
+            parentData.children.push(newChild);
+            localStorage.setItem('parentData', JSON.stringify(parentData));
+            loadDashboard();
+            closeModal();
+            showToast('Child added successfully!', 'success');
+        }
+
+        function trackOrder(orderId) {
+            showModal('Track Order', `
+                <p><strong>Order #${orderId}</strong></p>
+                <div class="progress" style="height: 8px; background: #ddd; border-radius: 4px; margin: 20px 0;">
+                    <div class="progress-bar" style="width: 60%; height: 100%; background: var(--primary); border-radius: 4px;"></div>
+                </div>
+                <p><i class="fas fa-check-circle" style="color: var(--success);"></i> Order Confirmed</p>
+                <p><i class="fas fa-utensils" style="color: var(--primary);"></i> Being Prepared</p>
+                <p><i class="fas fa-motorcycle" style="color: var(--warning);"></i> Out for Delivery</p>
+                <p><i class="fas fa-clock" style="color: var(--text-light);"></i> Estimated delivery: 30 minutes</p>
+            `);
+        }
+
+        function logout() {
+            localStorage.removeItem('parentLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        function showModal(title, content) {
+            let modal = document.getElementById('dynamicModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'dynamicModal';
+                modal.className = 'modal';
+                modal.innerHTML = `<div class="modal-content"><div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3 id="modalTitle"></h3><button onclick="closeModal()" style="background:none; border:none; font-size:24px;">&times;</button></div><div id="modalBody"></div></div>`;
+                document.body.appendChild(modal);
+            }
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = content;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('dynamicModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.className = `toast toast-${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Tab navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                document.getElementById(`${tab}-tab`).style.display = 'block';
+            });
+        });
+
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Load theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Initialize
+        loadDashboard();
+
+        // Add CSS for form-group and progress
+        const style = document.createElement('style');
+        style.textContent = `
+            .form-group { margin-bottom: 15px; }
+            .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+            .form-control { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--background); color: var(--text); }
+            .progress-bar { transition: width 0.3s ease; }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

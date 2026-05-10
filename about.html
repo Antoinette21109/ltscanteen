@@ -7,7 +7,6 @@
     <meta name="description" content="Learn about Literacy Tree School Canteen's mission to provide nutritious meals and our commitment to quality education and child welfare.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Include all the CSS variables and styles from your main page */
         /* CSS Variables */
         :root {
             --primary: #2e7d32;
@@ -20,6 +19,8 @@
             --text-light: #666666;
             --background: #f5f5f5;
             --white: #ffffff;
+            --card-bg: #ffffff;
+            --header-bg: #ffffff;
             --error: #f44336;
             --success: #4caf50;
             --warning: #ff9800;
@@ -28,6 +29,29 @@
             --radius: 8px;
             --transition: all 0.3s ease;
             --container-max-width: 1200px;
+            --mission-bg: rgba(46, 125, 50, 0.05);
+            --border-color: #eee;
+            --footer-bg: #1b5e20;
+        }
+
+        /* ===== DARK MODE VARIABLES ===== */
+        [data-theme="dark"] {
+            --primary: #66bb6a;
+            --primary-dark: #4caf50;
+            --primary-light: #81c784;
+            --secondary: #ffb74d;
+            --secondary-dark: #ffa726;
+            --text: #e0e0e0;
+            --text-light: #b0b0b0;
+            --background: #121212;
+            --white: #1e1e1e;
+            --card-bg: #252525;
+            --header-bg: #1e1e1e;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.5);
+            --mission-bg: rgba(102, 187, 106, 0.08);
+            --border-color: #333333;
+            --footer-bg: #111111;
         }
 
         /* Global Styles */
@@ -43,6 +67,7 @@
             color: var(--text);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -59,33 +84,14 @@
             margin-bottom: 15px;
         }
 
-        h1 {
-            font-size: 2.5rem;
-        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        h5 { font-size: 1.25rem; }
+        h6 { font-size: 1rem; }
 
-        h2 {
-            font-size: 2rem;
-        }
-
-        h3 {
-            font-size: 1.75rem;
-        }
-
-        h4 {
-            font-size: 1.5rem;
-        }
-
-        h5 {
-            font-size: 1.25rem;
-        }
-
-        h6 {
-            font-size: 1rem;
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
+        p { margin-bottom: 15px; }
 
         /* Buttons */
         .btn {
@@ -94,7 +100,7 @@
             justify-content: center;
             padding: 12px 24px;
             background-color: var(--primary);
-            color: var(--white);
+            color: #ffffff;
             border: none;
             border-radius: var(--radius);
             cursor: pointer;
@@ -108,9 +114,7 @@
             overflow: hidden;
         }
 
-        .btn i {
-            margin-right: 8px;
-        }
+        .btn i { margin-right: 8px; }
 
         .btn:hover {
             background-color: var(--primary-dark);
@@ -118,41 +122,27 @@
             box-shadow: var(--shadow-hover);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+        .btn:active { transform: translateY(0); }
 
-        .btn-secondary {
-            background-color: var(--secondary);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--secondary-dark);
-        }
+        .btn-secondary { background-color: var(--secondary); }
+        .btn-secondary:hover { background-color: var(--secondary-dark); }
 
         .btn-outline {
             background-color: transparent;
             border: 2px solid var(--primary);
             color: var(--primary);
         }
-
         .btn-outline:hover {
             background-color: var(--primary);
-            color: var(--white);
+            color: #ffffff;
         }
 
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .btn-block {
-            width: 100%;
-        }
+        .btn-sm { padding: 8px 16px; font-size: 14px; }
+        .btn-block { width: 100%; }
 
         /* Cards */
         .card {
-            background-color: var(--white);
+            background-color: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 20px;
@@ -168,7 +158,7 @@
         }
 
         .card-header {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -180,11 +170,12 @@
 
         /* Header Styles */
         header {
-            background-color: var(--white);
+            background-color: var(--header-bg);
             box-shadow: var(--shadow);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background-color 0.3s ease;
         }
 
         .header-content {
@@ -210,9 +201,22 @@
             margin-bottom: 0;
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+        }
+
         .nav-links {
             display: flex;
             list-style: none;
+            align-items: center;
+            gap: 5px;
         }
 
         .nav-links li {
@@ -227,9 +231,7 @@
             position: relative;
         }
 
-        .nav-links a:hover {
-            color: var(--primary);
-        }
+        .nav-links a:hover { color: var(--primary); }
 
         .nav-links a::after {
             content: '';
@@ -242,9 +244,7 @@
             transition: var(--transition);
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
-        }
+        .nav-links a:hover::after { width: 100%; }
 
         .mobile-menu-btn {
             display: none;
@@ -255,10 +255,127 @@
             color: var(--primary);
         }
 
-        /* About Section */
-        .about-section {
-            padding: 60px 0;
+        /* ===== THEME TOGGLE STYLES ===== */
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
         }
+
+        .theme-toggle {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle-checkbox {
+            opacity: 0;
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-toggle-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 52px;
+            height: 26px;
+            background-color: #ccc;
+            border-radius: 50px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            padding: 0 5px;
+        }
+
+        .theme-toggle-ball {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            z-index: 1;
+        }
+
+        .theme-icon {
+            font-size: 12px;
+            z-index: 0;
+        }
+
+        .sun-icon { color: #f39c12; }
+        .moon-icon { color: #ffffff; }
+
+        .theme-toggle-checkbox:checked + .theme-toggle-label {
+            background-color: #4a4a4a;
+        }
+
+        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-toggle-ball {
+            transform: translateX(26px);
+        }
+
+        .theme-toggle-checkbox:focus + .theme-toggle-label {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Mobile nav overlay */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--header-bg);
+            z-index: 200;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .mobile-nav.active { display: flex; }
+
+        .mobile-nav a {
+            text-decoration: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .mobile-nav a:hover { color: var(--primary); }
+
+        .mobile-nav-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .mobile-theme-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .mobile-theme-row span {
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* About Section */
+        .about-section { padding: 60px 0; }
 
         .section-header {
             text-align: center;
@@ -309,14 +426,13 @@
             transition: var(--transition);
         }
 
-        .about-image:hover img {
-            transform: scale(1.05);
-        }
+        .about-image:hover img { transform: scale(1.05); }
 
         /* Mission Section */
         .mission-section {
             padding: 60px 0;
-            background-color: rgba(46, 125, 50, 0.05);
+            background-color: var(--mission-bg);
+            transition: background-color 0.3s ease;
         }
 
         .mission-grid {
@@ -328,7 +444,7 @@
         .mission-card {
             text-align: center;
             padding: 30px;
-            background-color: var(--white);
+            background-color: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             transition: var(--transition);
@@ -358,9 +474,7 @@
         }
 
         /* Team Section */
-        .team-section {
-            padding: 60px 0;
-        }
+        .team-section { padding: 60px 0; }
 
         .team-grid {
             display: grid;
@@ -370,7 +484,7 @@
 
         .team-member {
             text-align: center;
-            background-color: var(--white);
+            background-color: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 30px 20px;
@@ -389,12 +503,21 @@
             margin: 0 auto 20px;
             overflow: hidden;
             border: 4px solid var(--primary);
+            background-color: var(--mission-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .member-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .member-image .placeholder-icon {
+            font-size: 48px;
+            color: var(--primary);
         }
 
         .team-member h4 {
@@ -414,13 +537,14 @@
             margin-bottom: 15px;
         }
 
-        .social-links {
+        /* Team social links (green theme) */
+        .team-social-links {
             display: flex;
             justify-content: center;
             gap: 10px;
         }
 
-        .social-link {
+        .team-social-link {
             width: 35px;
             height: 35px;
             background-color: rgba(46, 125, 50, 0.1);
@@ -433,9 +557,9 @@
             transition: var(--transition);
         }
 
-        .social-link:hover {
+        .team-social-link:hover {
             background-color: var(--primary);
-            color: var(--white);
+            color: #ffffff;
             transform: translateY(-3px);
         }
 
@@ -443,16 +567,11 @@
         .values-section {
             padding: 60px 0;
             background-color: var(--primary-dark);
-            color: var(--white);
+            color: #ffffff;
         }
 
-        .values-section .section-header h2 {
-            color: var(--white);
-        }
-
-        .values-section .section-header p {
-            color: rgba(255, 255, 255, 0.8);
-        }
+        .values-section .section-header h2 { color: #ffffff; }
+        .values-section .section-header p { color: rgba(255, 255, 255, 0.8); }
 
         .values-grid {
             display: grid;
@@ -479,9 +598,7 @@
             flex-shrink: 0;
         }
 
-        .value-content h4 {
-            margin-bottom: 10px;
-        }
+        .value-content h4 { margin-bottom: 10px; }
 
         .value-content p {
             color: rgba(255, 255, 255, 0.8);
@@ -495,25 +612,18 @@
             background-size: cover;
             background-position: center;
             text-align: center;
-            color: var(--white);
+            color: #ffffff;
         }
 
-        .cta-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
+        .cta-section h2 { font-size: 2.5rem; margin-bottom: 20px; }
+        .cta-section p { font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px; }
 
-        .cta-section p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-
-        /* Footer Styles */
+        /* ===== FOOTER STYLES ===== */
         footer {
-            background-color: var(--primary-dark);
-            color: var(--white);
+            background-color: var(--footer-bg);
+            color: #ffffff;
             padding: 60px 0 30px;
+            transition: background-color 0.3s ease;
         }
 
         .footer-content {
@@ -527,6 +637,7 @@
             font-size: 20px;
             margin-bottom: 20px;
             position: relative;
+            color: #ffffff;
         }
 
         .footer-column h3::after {
@@ -539,101 +650,187 @@
             left: 0;
         }
 
-        .footer-links {
-            list-style: none;
+        .footer-column p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.7;
         }
 
+        .footer-links { list-style: none; }
         .footer-links li {
             margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
         }
 
         .footer-links a {
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            transition: var(--transition);
+            transition: color 0.3s ease, padding-left 0.3s ease;
+            position: relative;
+            font-size: 14px;
         }
 
         .footer-links a:hover {
-            color: var(--white);
+            color: var(--secondary);
             padding-left: 5px;
         }
 
-        .social-links {
+        .footer-links a::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background-color: var(--secondary);
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover::before {
+            width: 100%;
+        }
+
+        /* Footer social links (white/orange theme - distinct from team) */
+        .footer-social-links {
             display: flex;
-            gap: 15px;
+            justify-content: flex-start;
+            gap: 12px;
             margin-top: 20px;
         }
 
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .footer-social-link {
             width: 40px;
             height: 40px;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
             text-decoration: none;
-            transition: var(--transition);
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+            font-size: 16px;
         }
 
-        .social-link:hover {
+        .footer-social-link:hover {
             background-color: var(--secondary);
+            color: #ffffff;
             transform: translateY(-3px);
+        }
+
+        .footer-social-link:active {
+            transform: translateY(-1px);
         }
 
         .footer-bottom {
             text-align: center;
             padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Hamburger icon */
+        .hamburger-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hamburger-icon span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+
+        /* ===== DARK MODE SPECIFIC OVERRIDES ===== */
+        [data-theme="dark"] .logo h1 { color: var(--primary); }
+
+        [data-theme="dark"] .nav-links a { color: var(--text); }
+        [data-theme="dark"] .nav-links a:hover { color: var(--primary); }
+
+        [data-theme="dark"] .btn-outline {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        [data-theme="dark"] .btn-outline:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .cta-section .btn {
+            background-color: #ffffff;
+            color: #1b5e20;
+        }
+        [data-theme="dark"] .cta-section .btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        [data-theme="dark"] .member-image {
+            border-color: var(--primary);
+        }
+
+        [data-theme="dark"] .mobile-nav {
+            background-color: var(--header-bg);
+        }
+
+        [data-theme="dark"] .mobile-nav a { color: var(--text); }
+        [data-theme="dark"] .mobile-nav-close { color: var(--text); }
+
+        [data-theme="dark"] .hamburger-icon span {
+            background-color: var(--primary);
+        }
+
+        [data-theme="dark"] .team-social-link {
+            background-color: rgba(102, 187, 106, 0.15);
+        }
+
+        [data-theme="dark"] .team-social-link:hover {
+            background-color: var(--primary);
+            color: #ffffff;
         }
 
         /* Responsive Styles */
         @media (max-width: 992px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .about-content {
-                grid-template-columns: 1fr;
-            }
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .about-content { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .section-header h2 {
-                font-size: 2rem;
+            .section-header h2 { font-size: 2rem; }
+            .cta-section h2 { font-size: 2rem; }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
             }
 
-            .cta-section h2 {
-                font-size: 2rem;
+            .footer-column,
+            .footer-links {
+                text-align: center;
+            }
+
+            .footer-column h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .footer-social-links {
+                justify-content: center;
             }
         }
 
         @media (max-width: 576px) {
-            .about-section {
-                padding: 40px 0;
-            }
-
-            .mission-section {
-                padding: 40px 0;
-            }
-
-            .team-section {
-                padding: 40px 0;
-            }
-
-            .values-section {
-                padding: 40px 0;
-            }
-
-            .cta-section {
-                padding: 60px 0;
-            }
+            .about-section { padding: 40px 0; }
+            .mission-section { padding: 40px 0; }
+            .team-section { padding: 40px 0; }
+            .values-section { padding: 40px 0; }
+            .cta-section { padding: 60px 0; }
         }
     </style>
 </head>
@@ -643,24 +840,64 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-    <img src="/School-logo.webp" alt="Literacy Tree School Logo" style="height: 50px; width: auto; margin-right: 10px;">
-    <h1>Literacy Tree Canteen</h1>
-</div>
-                <nav>
-                    <ul class="nav-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="menu.html">Menu</a></li>
-                        <li><a href="about.html" style="color: var(--primary);">About</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="index.html" class="btn btn-outline">Login</a></li>
-                    </ul>
-                    <button class="mobile-menu-btn">
-                        <i class="fas fa-bars"></i>
+                    <img src="/School-logo.webp" alt="Literacy Tree School Logo" style="height: 50px; width: auto; margin-right: 10px;">
+                    <h1>Literacy Tree Canteen</h1>
+                </div>
+                <div class="header-actions">
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="/">Home</a></li>
+                            <li><a href="menu.html">Menu</a></li>
+                            <li><a href="about.html">About</a></li>
+                            <li><a href="contact.html">Contact</a></li>
+                            <li><a href="#" class="btn btn-outline" id="login-btn">Login</a></li>
+                            <li class="theme-toggle-wrapper">
+                                <div class="theme-toggle">
+                                    <input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox">
+                                    <label for="dark-mode-toggle" class="theme-toggle-label">
+                                        <span class="theme-toggle-ball"></span>
+                                        <i class="fas fa-sun theme-icon sun-icon"></i>
+                                        <i class="fas fa-moon theme-icon moon-icon"></i>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                        <div class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </button>
-                </nav>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close menu">
+            <i class="fas fa-times"></i>
+        </button>
+        <a href="/">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="#" class="btn btn-outline">Login</a>
+        <div class="mobile-theme-row">
+            <span><i class="fas fa-sun"></i></span>
+            <div class="theme-toggle">
+                <input type="checkbox" id="mobile-dark-mode-toggle" class="theme-toggle-checkbox">
+                <label for="mobile-dark-mode-toggle" class="theme-toggle-label">
+                    <span class="theme-toggle-ball"></span>
+                    <i class="fas fa-sun theme-icon sun-icon"></i>
+                    <i class="fas fa-moon theme-icon moon-icon"></i>
+                </label>
+            </div>
+            <span><i class="fas fa-moon"></i></span>
+        </div>
+    </div>
 
     <!-- About Section -->
     <section class="about-section">
@@ -732,67 +969,66 @@
             <div class="team-grid">
                 <div class="team-member">
                     <div class="member-image">
-                        <img src="" alt="Antoinette M Kasandwe">
+                        <img src="" alt="Antoinette M Kasandwe" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-user placeholder-icon\'></i>';">
                     </div>
                     <h4>Antoinette M Kasandwe</h4>
                     <div class="position">Canteen Manager</div>
-                    <p class="bio">Mangaes and keeps track on orders, she ensures accuracy in our daily operations.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    <p class="bio">Manages and keeps track of orders, she ensures accuracy in our daily operations.</p>
+                    <div class="team-social-links">
+                        <a href="#" class="team-social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="team-social-link"><i class="fas fa-envelope"></i></a>
                     </div>
-
                 </div>
-                 <div class="team-grid">
+
                 <div class="team-member">
                     <div class="member-image">
-                        <img src="C:\Users\Administrator\Desktop\My APPs" alt="Fridah Masuku">
+                        <img src="" alt="Fridah Masuku" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-user placeholder-icon\'></i>';">
                     </div>
-                <h4>Fridah Masuku</h4>
+                    <h4>Fridah Masuku</h4>
                     <div class="position">Canteen Vice-Manager</div>
                     <p class="bio">Experienced in the food industry, Fridah ensures quality and efficiency in our daily operations.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    <div class="team-social-links">
+                        <a href="#" class="team-social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="team-social-link"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
 
                 <div class="team-member">
                     <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Precious">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Precious" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-user placeholder-icon\'></i>';">
                     </div>
                     <h4>Precious</h4>
                     <div class="position">Head Chef</div>
                     <p class="bio">Precious brings culinary expertise and creativity to our menu, ensuring meals are both nutritious and appealing to children.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    <div class="team-social-links">
+                        <a href="#" class="team-social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="team-social-link"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
 
                 <div class="team-member">
                     <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Precious">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Precious" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-user placeholder-icon\'></i>';">
                     </div>
                     <h4>Precious</h4>
                     <div class="position">Nutritionist</div>
                     <p class="bio">Precious develops our meal plans with focus on balanced nutrition, dietary requirements, and child development needs.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    <div class="team-social-links">
+                        <a href="#" class="team-social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="team-social-link"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
 
                 <div class="team-member">
                     <div class="member-image">
-                        <img src="https://instagram.flun2-1.fna.fbcdn.net/v/t51.2885-19/566052155_18063695531573361_5615460051515854764_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.flun2-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QGrjbaFIfNHWkajpS-GSQgGZpDq41sgOMIGQqUSYgadTrp3bTZ4ihMRNkFJ05xNvSE&_nc_ohc=SRDSNRfSNfQQ7kNvwGGXTFM&_nc_gid=9PmpbtWSXdl-kXORGT0nEw&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_Afhdq6xXXauhuqk9y3GoVe3s12-QJ9qLB8h__A2f62nr4Q&oe=69333005&_nc_sid=8b3546" alt="Antoinette M Kasandwe">
+                        <img src="" alt="Antoinette M Kasandwe" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-user placeholder-icon\'></i>';">
                     </div>
                     <h4>Antoinette M Kasandwe</h4>
                     <div class="position">Operations Coordinator</div>
                     <p class="bio">She manages our online ordering system and ensures smooth communication between parents and the canteen.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="social-link"><i class="fas fa-envelope"></i></a>
+                    <div class="team-social-links">
+                        <a href="#" class="team-social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="team-social-link"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
             </div>
@@ -876,7 +1112,7 @@
         <div class="container">
             <h2>Ready to Experience Quality School Nutrition?</h2>
             <p>Join hundreds of parents who trust us with their children's daily nutrition. Order today and see the difference!</p>
-            <a href="menu.html" class="btn btn-secondary" style="background-color: var(--white); color: var(--primary);">Order Now</a>
+            <a href="menu.html" class="btn btn-secondary" style="background-color: #ffffff; color: #1b5e20;">Order Now</a>
         </div>
     </section>
 
@@ -887,11 +1123,11 @@
                 <div class="footer-column">
                     <h3>Literacy Tree School</h3>
                     <p>Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    <div class="footer-social-links">
+                        <a href="#" class="footer-social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
                 <div class="footer-column">
@@ -914,28 +1150,25 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
+                <p>&copy; 2024 Literacy Tree School. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Smooth scroll for anchor links
         document.addEventListener('DOMContentLoaded', function() {
+            // ===== SMOOTH SCROLL =====
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
                     const target = document.querySelector(this.getAttribute('href'));
                     if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
             });
 
-            // Add animation on scroll
+            // ===== SCROLL ANIMATIONS =====
             const observerOptions = {
                 threshold: 0.1,
                 rootMargin: '0px 0px -50px 0px'
@@ -950,84 +1183,84 @@
                 });
             }, observerOptions);
 
-            // Observe all cards and sections
             document.querySelectorAll('.card, .mission-card, .team-member, .value-item').forEach(el => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 observer.observe(el);
+            });
 
-                // Add this to your existing JavaScript code
+            // ===== MOBILE MENU =====
+            const mobileMenuBtn = document.getElementById('mobile-menu-toggle');
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileNavClose = document.getElementById('mobile-nav-close');
 
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('dark-mode-toggle');
-const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
+            if (mobileMenuBtn && mobileNav) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileNav.classList.add('active');
+                });
+            }
 
-// 1. Check for saved theme preference or default to light mode
-const currentTheme = localStorage.getItem('theme');
-if (currentTheme) {
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    
-    // Set the state of both toggles based on the saved theme
-    if (currentTheme === 'dark') {
-        darkModeToggle.checked = true;
-        mobileDarkModeToggle.checked = true;
-    }
-}
+            if (mobileNavClose && mobileNav) {
+                mobileNavClose.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                });
+            }
 
-// 2. Define the function to switch the theme
-function switchTheme() {
-    if (darkModeToggle.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-    }
-}
+            if (mobileNav) {
+                mobileNav.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileNav.classList.remove('active');
+                    });
+                });
+            }
 
-// 3. Add event listeners for both toggles
-// When the desktop toggle is changed
-darkModeToggle.addEventListener('change', function() {
-    // Sync the mobile toggle
-    mobileDarkModeToggle.checked = this.checked;
-    // Apply the theme change
-    switchTheme();
-});
+            // ===== DARK MODE TOGGLE =====
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
 
-// When the mobile toggle is changed
-mobileDarkModeToggle.addEventListener('change', function() {
-    // Sync the desktop toggle
-    darkModeToggle.checked = this.checked;
-    // Apply the theme change
-    switchTheme();
-});
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
-// 4. Check for system preference if no local theme is set
-const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                const isDark = theme === 'dark';
+                if (darkModeToggle) darkModeToggle.checked = isDark;
+                if (mobileDarkModeToggle) mobileDarkModeToggle.checked = isDark;
+            }
 
-// This part runs on the initial page load
-if (prefersDarkScheme.matches && !currentTheme) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    darkModeToggle.checked = true;
-    mobileDarkModeToggle.checked = true;
-}
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (prefersDarkScheme.matches) {
+                applyTheme('dark');
+            } else {
+                applyTheme('light');
+            }
 
-// (Optional) Listen for changes in system theme preference
-prefersDarkScheme.addEventListener('change', (e) => {
-    // Only change the theme if the user hasn't set a preference in our app
-    if (!localStorage.getItem('theme')) {
-        if (e.matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            darkModeToggle.checked = true;
-            mobileDarkModeToggle.checked = true;
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-            darkModeToggle.checked = false;
-            mobileDarkModeToggle.checked = false;
-        }
-    }
-});
+            function switchTheme(isDark) {
+                const theme = isDark ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (darkModeToggle) darkModeToggle.checked = isDark;
+                if (mobileDarkModeToggle) mobileDarkModeToggle.checked = isDark;
+            }
+
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('change', function() {
+                    switchTheme(this.checked);
+                });
+            }
+
+            if (mobileDarkModeToggle) {
+                mobileDarkModeToggle.addEventListener('change', function() {
+                    switchTheme(this.checked);
+                });
+            }
+
+            prefersDarkScheme.addEventListener('change', function(e) {
+                if (!localStorage.getItem('theme')) {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
             });
         });
     </script>

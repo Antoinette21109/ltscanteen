@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Literacy Tree School Canteen</title>
-    <meta name="description" content="Get in touch with Literacy Tree School Canteen. Find our location, contact information, and send us a message.">
+    <meta name="description"
+        content="Get in touch with Literacy Tree School Canteen. Find our location, contact information, and send us a message.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Include all the CSS variables and styles from your main page */
         /* CSS Variables */
         :root {
             --primary: #2e7d32;
@@ -28,6 +29,43 @@
             --radius: 8px;
             --transition: all 0.3s ease;
             --container-max-width: 1200px;
+            --card-bg: #ffffff;
+            --border-color: #ddd;
+            --input-bg: #ffffff;
+            --faq-section-bg: rgba(46, 125, 50, 0.05);
+            --faq-hover-bg: rgba(46, 125, 50, 0.05);
+            --map-bg: #e0e0e0;
+            --input-focus-shadow: rgba(46, 125, 50, 0.2);
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --primary: #4caf50;
+            --primary-dark: #2e7d32;
+            --primary-light: #81c784;
+            --secondary: #ffb74d;
+            --secondary-dark: #ff9800;
+            --accent: #64b5f6;
+            --text: #e0e0e0;
+            --text-light: #bdbdbd;
+            --background: #121212;
+            --white: #1e1e1e;
+            --error: #ef5350;
+            --success: #66bb6a;
+            --warning: #ffb74d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
+            --card-bg: #2a2a2a;
+            --border-color: #444;
+            --input-bg: #333;
+            --faq-section-bg: rgba(102, 187, 106, 0.08);
+            --faq-hover-bg: rgba(102, 187, 106, 0.08);
+            --map-bg: #2a2a2a;
+            --input-focus-shadow: rgba(76, 175, 80, 0.3);
+        }
+
+        [data-theme="dark"] footer {
+            background-color: #111111;
         }
 
         /* Global Styles */
@@ -43,6 +81,7 @@
             color: var(--text);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color var(--transition), color var(--transition);
         }
 
         .container {
@@ -59,33 +98,13 @@
             margin-bottom: 15px;
         }
 
-        h1 {
-            font-size: 2.5rem;
-        }
-
-        h2 {
-            font-size: 2rem;
-        }
-
-        h3 {
-            font-size: 1.75rem;
-        }
-
-        h4 {
-            font-size: 1.5rem;
-        }
-
-        h5 {
-            font-size: 1.25rem;
-        }
-
-        h6 {
-            font-size: 1rem;
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        h5 { font-size: 1.25rem; }
+        h6 { font-size: 1rem; }
+        p { margin-bottom: 15px; }
 
         /* Buttons */
         .btn {
@@ -94,7 +113,7 @@
             justify-content: center;
             padding: 12px 24px;
             background-color: var(--primary);
-            color: var(--white);
+            color: #fff;
             border: none;
             border-radius: var(--radius);
             cursor: pointer;
@@ -108,9 +127,7 @@
             overflow: hidden;
         }
 
-        .btn i {
-            margin-right: 8px;
-        }
+        .btn i { margin-right: 8px; }
 
         .btn:hover {
             background-color: var(--primary-dark);
@@ -118,17 +135,10 @@
             box-shadow: var(--shadow-hover);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+        .btn:active { transform: translateY(0); }
 
-        .btn-secondary {
-            background-color: var(--secondary);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--secondary-dark);
-        }
+        .btn-secondary { background-color: var(--secondary); }
+        .btn-secondary:hover { background-color: var(--secondary-dark); }
 
         .btn-outline {
             background-color: transparent;
@@ -138,26 +148,40 @@
 
         .btn-outline:hover {
             background-color: var(--primary);
-            color: var(--white);
+            color: #fff;
         }
 
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 14px;
+        .btn-sm { padding: 8px 16px; font-size: 14px; }
+        .btn-block { width: 100%; }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
-        .btn-block {
-            width: 100%;
+        /* Spinner for loading states */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
         }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Cards */
         .card {
-            background-color: var(--white);
+            background-color: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 20px;
             margin-bottom: 20px;
-            transition: var(--transition);
+            transition: var(--transition), background-color var(--transition);
             position: relative;
             overflow: hidden;
         }
@@ -168,61 +192,131 @@
         }
 
         .card-header {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 0;
-        }
+        .card-title { font-size: 1.5rem; margin-bottom: 0; }
 
-        /* Forms */
+        /* Forms - Compact */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 600;
+            font-size: 14px;
             color: var(--text);
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
             border-radius: var(--radius);
-            font-size: 16px;
-            transition: var(--transition);
+            font-size: 15px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color var(--transition);
+            background-color: var(--input-bg);
+            color: var(--text);
         }
 
         .form-control:focus {
             border-color: var(--primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow);
         }
+
+        .form-control::placeholder {
+            color: var(--text-light);
+            opacity: 0.6;
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.15);
+        }
+
+        .form-control.is-valid {
+            border-color: var(--success);
+        }
+
+        .invalid-feedback {
+            display: none;
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 4px;
+        }
+
+        .form-control.is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        select.form-control {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        [data-theme="dark"] select.form-control {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23bdbdbd' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .char-count.near-limit { color: var(--warning); }
+        .char-count.at-limit { color: var(--error); }
 
         .form-row {
             display: flex;
             flex-wrap: wrap;
-            margin: 0 -10px;
+            gap: 12px;
         }
 
         .form-col {
-            padding: 0 10px;
             flex: 1;
-            min-width: 250px;
+            min-width: 180px;
+        }
+
+        /* Honeypot - hidden from users, visible to bots */
+        .hp-field {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            height: 0;
+            width: 0;
+            pointer-events: none;
+            tab-index: -1;
         }
 
         /* Alerts */
         .alert {
-            padding: 15px;
+            padding: 14px 18px;
             border-radius: var(--radius);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
+
+        .alert i { margin-top: 2px; flex-shrink: 0; }
 
         .alert-success {
             background-color: rgba(76, 175, 80, 0.1);
@@ -255,6 +349,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background-color var(--transition);
         }
 
         .header-content {
@@ -264,30 +359,18 @@
             padding: 15px 0;
         }
 
-        .logo {
+        .header-actions {
             display: flex;
             align-items: center;
+            gap: 20px;
         }
 
-        .logo img {
-            height: 50px;
-            margin-right: 10px;
-        }
+        .logo { display: flex; align-items: center; }
+        .logo img { height: 50px; margin-right: 10px; }
+        .logo h1 { font-size: 24px; color: var(--primary); margin-bottom: 0; }
 
-        .logo h1 {
-            font-size: 24px;
-            color: var(--primary);
-            margin-bottom: 0;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-
-        .nav-links li {
-            margin-left: 25px;
-        }
+        .nav-links { display: flex; list-style: none; align-items: center; margin: 0; }
+        .nav-links li { margin-left: 25px; }
 
         .nav-links a {
             text-decoration: none;
@@ -297,9 +380,7 @@
             position: relative;
         }
 
-        .nav-links a:hover {
-            color: var(--primary);
-        }
+        .nav-links a:hover { color: var(--primary); }
 
         .nav-links a::after {
             content: '';
@@ -312,9 +393,7 @@
             transition: var(--transition);
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
-        }
+        .nav-links a:hover::after { width: 100%; }
 
         .mobile-menu-btn {
             display: none;
@@ -323,186 +402,363 @@
             font-size: 24px;
             cursor: pointer;
             color: var(--primary);
+            padding: 8px;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            z-index: 1001;
         }
 
-        /* Contact Section */
+        .mobile-menu-btn:hover { background-color: rgba(46, 125, 50, 0.1); }
+
+        .hamburger-icon {
+            display: inline-block;
+            position: relative;
+            width: 24px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .hamburger-icon span {
+            display: block;
+            position: absolute;
+            height: 3px;
+            width: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .hamburger-icon span:nth-child(1) { top: 0px; }
+        .hamburger-icon span:nth-child(2) { top: 8px; }
+        .hamburger-icon span:nth-child(3) { top: 16px; }
+
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(1) { top: 8px; transform: rotate(135deg); }
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(2) { opacity: 0; left: -60px; }
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(3) { top: 8px; transform: rotate(-135deg); }
+
+        /* Mobile Navigation */
+        .mobile-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .mobile-nav-overlay.active { opacity: 1; visibility: visible; }
+
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            max-width: 320px;
+            height: 100vh;
+            background-color: var(--white);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .mobile-nav.active { left: 0; }
+
+        .mobile-nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        .mobile-nav-logo { display: flex; align-items: center; font-size: 20px; font-weight: 700; }
+        .mobile-nav-logo i { margin-right: 8px; font-size: 24px; }
+
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+            padding: 5px;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .mobile-nav-close:hover { background-color: rgba(255, 255, 255, 0.1); transform: rotate(90deg); }
+
+        .mobile-nav-links { list-style: none; padding: 0; margin: 0; }
+        .mobile-nav-links li { border-bottom: 1px solid var(--border-color); }
+
+        .mobile-nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .mobile-nav-links a:hover { color: var(--primary); padding-left: 25px; }
+        .mobile-nav-links a i { margin-right: 12px; font-size: 18px; width: 20px; text-align: center; }
+
+        .mobile-theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .mobile-theme-toggle span { font-weight: 500; color: var(--text); }
+
+        /* Dark Mode Toggle */
+        .theme-toggle { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .theme-toggle-checkbox { opacity: 0; width: 0; height: 0; }
+
+        .theme-toggle-label {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+            border-radius: 34px;
+            overflow: hidden;
+        }
+
+        .theme-toggle-label:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .theme-toggle-checkbox:checked + .theme-toggle-label { background-color: var(--primary); }
+        .theme-toggle-checkbox:checked + .theme-toggle-label:before { transform: translateX(30px); }
+
+        .theme-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: white;
+            transition: var(--transition);
+            z-index: 1;
+        }
+
+        .sun-icon { left: 8px; }
+        .moon-icon { right: 8px; }
+        .theme-toggle-checkbox:checked + .theme-toggle-label .sun-icon { opacity: 0; }
+        .theme-toggle-checkbox:not(:checked) + .theme-toggle-label .moon-icon { opacity: 0; }
+
+        /* ===== CONTACT SECTION ===== */
         .contact-section {
-            padding: 60px 0;
+            padding: 60px 0 40px;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
 
         .section-header h2 {
-            font-size: 2.5rem;
+            font-size: 2.25rem;
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .section-header p {
-            max-width: 700px;
+            max-width: 600px;
             margin: 0 auto;
             color: var(--text-light);
-            font-size: 1.1rem;
+            font-size: 1rem;
+        }
+
+        .contact-wrapper {
+            max-width: 960px;
+            margin: 0 auto;
         }
 
         .contact-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
+            grid-template-columns: 5fr 7fr;
+            gap: 30px;
+            align-items: start;
         }
 
         .contact-info {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
         }
 
         .contact-item {
             display: flex;
             align-items: flex-start;
-            gap: 15px;
+            gap: 14px;
         }
 
         .contact-icon {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             background-color: rgba(46, 125, 50, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            font-size: 20px;
+            font-size: 18px;
             flex-shrink: 0;
+            transition: background-color var(--transition), color var(--transition);
         }
 
         .contact-details h4 {
-            margin-bottom: 5px;
-            font-size: 18px;
+            margin-bottom: 3px;
+            font-size: 15px;
         }
 
         .contact-details p {
             margin-bottom: 0;
             color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        .contact-form {
-            background-color: var(--white);
+        .contact-form-card {
+            background-color: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 30px;
+            padding: 24px;
+            transition: background-color var(--transition);
         }
 
-        .contact-form h3 {
-            margin-bottom: 20px;
+        .contact-form-card h3 {
+            margin-bottom: 16px;
             color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        .form-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0 0 14px;
         }
 
         /* Map Section */
-        .map-section {
-            margin-bottom: 40px;
-        }
+        .map-section { padding: 0 0 50px; }
 
         .map-container {
-            height: 400px;
+            height: 350px;
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
+            background-color: var(--map-bg);
         }
 
-        .map-placeholder {
+        .map-container iframe {
             width: 100%;
             height: 100%;
-            background-color: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: var(--text-light);
+            border: 0;
+            display: block;
+            transition: filter 0.3s ease;
         }
 
-        .map-placeholder i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: var(--primary);
+        [data-theme="dark"] .map-container iframe {
+            filter: invert(90%) hue-rotate(180deg) grayscale(20%);
         }
 
         /* FAQ Section */
         .faq-section {
             padding: 60px 0;
-            background-color: rgba(46, 125, 50, 0.05);
+            background-color: var(--faq-section-bg);
+            transition: background-color var(--transition);
         }
 
         .faq-container {
-            max-width: 800px;
+            max-width: 760px;
             margin: 0 auto;
         }
 
         .faq-item {
-            background-color: var(--white);
+            background-color: var(--card-bg);
             border-radius: var(--radius);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             overflow: hidden;
             box-shadow: var(--shadow);
+            transition: background-color var(--transition);
         }
 
         .faq-question {
-            padding: 20px;
+            padding: 16px 20px;
             font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             transition: var(--transition);
+            color: var(--text);
+            user-select: none;
         }
 
-        .faq-question:hover {
-            background-color: rgba(46, 125, 50, 0.05);
-        }
-
-        .faq-question i {
-            transition: var(--transition);
-        }
-
-        .faq-item.active .faq-question i {
-            transform: rotate(180deg);
-        }
+        .faq-question:hover { background-color: var(--faq-hover-bg); }
+        .faq-question i { transition: var(--transition); color: var(--primary); font-size: 14px; flex-shrink: 0; }
+        .faq-item.active .faq-question i { transform: rotate(180deg); }
 
         .faq-answer {
             padding: 0 20px;
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease, padding 0.3s ease;
+            color: var(--text-light);
         }
 
         .faq-item.active .faq-answer {
-            padding: 0 20px 20px;
+            padding: 0 20px 16px;
             max-height: 500px;
+        }
+
+        .faq-answer p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 0;
         }
 
         /* Footer Styles */
         footer {
             background-color: var(--primary-dark);
-            color: var(--white);
+            color: #fff;
             padding: 60px 0 30px;
         }
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 40px;
             margin-bottom: 40px;
         }
 
-        .footer-column h3 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            position: relative;
-        }
+        .footer-column { margin-bottom: 30px; }
+        .footer-column h3 { font-size: 20px; margin-bottom: 20px; position: relative; }
 
         .footer-column h3::after {
             content: '';
@@ -514,30 +770,12 @@
             left: 0;
         }
 
-        .footer-links {
-            list-style: none;
-        }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 10px; color: rgba(255, 255, 255, 0.8); font-size: 14px; }
+        .footer-links a { color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: var(--transition); }
+        .footer-links a:hover { color: #fff; padding-left: 5px; }
 
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .footer-links a:hover {
-            color: var(--white);
-            padding-left: 5px;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
+        .social-links { display: flex; justify-content: flex-start; gap: 15px; margin-top: 20px; }
 
         .social-link {
             display: flex;
@@ -547,90 +785,213 @@
             height: 40px;
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            color: var(--white);
+            color: #fff;
             text-decoration: none;
             transition: var(--transition);
         }
 
-        .social-link:hover {
-            background-color: var(--secondary);
-            transform: translateY(-3px);
-        }
+        .social-link:hover { background-color: var(--secondary); transform: translateY(-3px); }
 
         .footer-bottom {
             text-align: center;
             padding-top: 30px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
         }
 
-        /* Responsive Styles */
-        @media (max-width: 992px) {
-            .nav-links {
-                display: none;
-            }
+        /* ===== RESPONSIVE ===== */
 
-            .mobile-menu-btn {
-                display: block;
-            }
+        /* Tablets and small desktops */
+        @media (max-width: 1200px) {
+            .container { padding: 0 15px; }
+        }
+
+        /* Tablets */
+        @media (max-width: 992px) {
+            .nav-links { display: none; }
+            .theme-toggle-wrapper { display: none; }
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
 
             .contact-content {
                 grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .contact-info {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .contact-item {
+                flex: 1 1 220px;
+                min-width: 220px;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 30px;
             }
         }
 
+        /* Large phones */
         @media (max-width: 768px) {
-            .section-header h2 {
-                font-size: 2rem;
-            }
+            .section-header h2 { font-size: 1.85rem; }
+            .section-header p { font-size: 0.95rem; }
 
-            .form-row {
+            .contact-section { padding: 40px 0 30px; }
+
+            .contact-info {
                 flex-direction: column;
             }
 
-            .form-col {
-                margin-bottom: 10px;
+            .contact-item {
+                flex: 1 1 100%;
+                min-width: 100%;
             }
+
+            .form-row { flex-direction: column; gap: 0; }
+            .form-col { min-width: 100%; }
+
+            .map-container { height: 280px; }
+
+            .faq-section { padding: 40px 0; }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .footer-column,
+            .footer-links,
+            .footer-column h3 { text-align: center; }
+
+            .footer-column h3::after { left: 50%; transform: translateX(-50%); }
+            .social-links { justify-content: center; }
         }
 
+        /* Small phones */
         @media (max-width: 576px) {
-            .contact-section {
-                padding: 40px 0;
-            }
+            .container { padding: 0 12px; }
 
-            .faq-section {
-                padding: 40px 0;
-            }
+            .section-header h2 { font-size: 1.6rem; }
+            .section-header p { font-size: 0.9rem; }
 
-            .map-container {
-                height: 300px;
+            .contact-form-card { padding: 18px; }
+            .contact-form-card h3 { font-size: 1.1rem; }
+
+            .form-control { padding: 9px 12px; font-size: 14px; }
+            .form-label { font-size: 13px; }
+
+            .map-container { height: 240px; }
+
+            .mobile-nav { width: 90%; }
+
+            .faq-question { padding: 14px 16px; font-size: 14px; }
+            .faq-answer p { font-size: 13px; }
+        }
+
+        /* Very small phones */
+        @media (max-width: 400px) {
+            .container { padding: 0 10px; }
+
+            .section-header h2 { font-size: 1.4rem; }
+
+            .btn { padding: 10px 18px; font-size: 14px; }
+
+            .contact-icon { width: 38px; height: 38px; font-size: 16px; }
+            .contact-details h4 { font-size: 14px; }
+            .contact-details p { font-size: 13px; }
+        }
+
+        /* Accessibility: reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header>
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-    <img src="/School-logo.webp" alt="Literacy Tree School Logo" style="height: 50px; width: auto; margin-right: 10px;">
-    <h1>Literacy Tree Canteen</h1>
-</div>
-                <nav>
-                    <ul class="nav-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="menu.html">Menu</a></li>
-                        <li><a href="about.html">About</a></li>
-                        <li><a href="contact.html" style="color: var(--primary);">Contact</a></li>
-                        <li><a href="index.html" class="btn btn-outline">Login</a></li>
-                    </ul>
-                    <button class="mobile-menu-btn">
-                        <i class="fas fa-bars"></i>
+                    <img src="/School-logo.webp" alt="Literacy Tree School Logo"
+                        style="height: 50px; width: auto; margin-right: 10px;">
+                    <h1>Literacy Tree Canteen</h1>
+                </div>
+                <div class="header-actions">
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="/">Home</a></li>
+                            <li><a href="menu.html">Menu</a></li>
+                            <li><a href="about.html">About</a></li>
+                            <li><a href="contact.html">Contact</a></li>
+                            <li><a href="#" class="btn btn-outline" id="login-btn">Login</a></li>
+                            <li class="theme-toggle-wrapper">
+                                <div class="theme-toggle">
+                                    <input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox">
+                                    <label for="dark-mode-toggle" class="theme-toggle-label">
+                                        <span class="theme-toggle-ball"></span>
+                                        <i class="fas fa-sun theme-icon sun-icon"></i>
+                                        <i class="fas fa-moon theme-icon moon-icon"></i>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                        <div class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </button>
-                </nav>
+                </div>
             </div>
         </div>
+        <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+            <div class="mobile-nav-header">
+                <div class="mobile-nav-logo">
+                    <i class="fas fa-leaf"></i>
+                    <span>Literacy Tree</span>
+                </div>
+                <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <ul class="mobile-nav-links">
+                <li><a href="/" class="mobile-nav-link"><i class="fas fa-home"></i><span>Home</span></a></li>
+                <li><a href="menu.html" class="mobile-nav-link"><i class="fas fa-utensils"></i><span>Menu</span></a>
+                </li>
+                <li><a href="about.html" class="mobile-nav-link"><i class="fas fa-info-circle"></i><span>About</span></a></li>
+                <li><a href="contact.html" class="mobile-nav-link"><i class="fas fa-envelope"></i><span>Contact</span></a></li>
+                <li><a href="#" class="mobile-nav-link" id="mobile-login-btn"><i class="fas fa-sign-in-alt"></i><span>Login</span></a></li>
+                <li>
+                    <div class="mobile-theme-toggle">
+                        <span><i class="fas fa-moon" style="margin-right:10px;"></i>Dark Mode</span>
+                        <div class="theme-toggle">
+                            <input type="checkbox" id="mobile-dark-mode-toggle" class="theme-toggle-checkbox">
+                            <label for="mobile-dark-mode-toggle" class="theme-toggle-label">
+                                <span class="theme-toggle-ball"></span>
+                                <i class="fas fa-sun theme-icon sun-icon"></i>
+                                <i class="fas fa-moon theme-icon moon-icon"></i>
+                            </label>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </nav>
     </header>
 
     <!-- Contact Section -->
@@ -638,94 +999,125 @@
         <div class="container">
             <div class="section-header">
                 <h2>Contact Us</h2>
-                <p>We're here to help! If you have any questions about our canteen services or need assistance with ordering, please don't hesitate to get in touch.</p>
+                <p>Have questions about our canteen services or need help with an order? We'd love to hear from you.</p>
             </div>
 
-            <div class="contact-content">
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>Our Location</h4>
-                            <p>Literacy Tree School<br>Makeni Bonaventure Area<br>Lusaka, Zambia</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>Phone Numbers</h4>
-                            <p>Main Office: 0977845317<br>Canteen Direct: 0972262815 or 0974754810</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>Email Addresses</h4>
-                            <p>General: info@literacytree.edu.zm<br>Canteen: canteen@literacytree.edu.zm</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>Canteen Hours</h4>
-                            <p>Monday - Thursday: 6:00 AM - 12:00 PM<br>Saturday: Closed<br>Sunday: Closed</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="contact-form">
-                    <h3>Send Us a Message</h3>
-                    <form id="contact-form">
-                        <div class="form-row">
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="first-name" class="form-label">First Name</label>
-                                    <input type="text" id="first-name" class="form-control" required>
-                                </div>
+            <div class="contact-wrapper">
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
-                            <div class="form-col">
-                                <div class="form-group">
-                                    <label for="last-name" class="form-label">Last Name</label>
-                                    <input type="text" id="last-name" class="form-control" required>
-                                </div>
+                            <div class="contact-details">
+                                <h4>Our Location</h4>
+                                <p>Literacy Tree School<br>Makeni Bonaventure Area<br>Lusaka, Zambia</p>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" id="email" class="form-control" required>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Phone Numbers</h4>
+                                <p>Main: 0977845317<br>Canteen: 0972262815 / 0974754810</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" id="phone" class="form-control">
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Email Addresses</h4>
+                                <p>General: info@literacytree.edu.zm<br>Canteen: canteen@literacytree.edu.zm</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="subject" class="form-label">Subject</label>
-                            <select id="subject" class="form-control">
-                                <option value="general">General Inquiry</option>
-                                <option value="menu">Menu Question</option>
-                                <option value="ordering">Ordering Issue</option>
-                                <option value="payment">Payment Question</option>
-                                <option value="feedback">Feedback</option>
-                                <option value="other">Other</option>
-                            </select>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Canteen Hours</h4>
+                                <p>Mon - Thu: 6:00 AM - 12:00 PM<br>Fri - Sun: Closed</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea id="message" class="form-control" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-block">Send Message</button>
-                    </form>
+                    </div>
+
+                    <div class="contact-form-card">
+                        <h3>Send Us a Message</h3>
+                        <hr class="form-divider">
+
+                        <form id="contact-form" novalidate>
+                            <!-- Honeypot field for spam protection -->
+                            <div class="hp-field" aria-hidden="true">
+                                <label for="website">Website</label>
+                                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                            </div>
+
+                            <div id="form-alert"></div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="first-name" class="form-label">First Name <span style="color:var(--error);">*</span></label>
+                                        <input type="text" id="first-name" name="firstName" class="form-control" placeholder="e.g. Mary" required autocomplete="given-name">
+                                        <div class="invalid-feedback">Please enter your first name.</div>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="last-name" class="form-label">Last Name <span style="color:var(--error);">*</span></label>
+                                        <input type="text" id="last-name" name="lastName" class="form-control" placeholder="e.g. Banda" required autocomplete="family-name">
+                                        <div class="invalid-feedback">Please enter your last name.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address <span style="color:var(--error);">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="e.g. mary@example.com" required autocomplete="email">
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="e.g. 0977123456" autocomplete="tel">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="subject" class="form-label">Subject <span style="color:var(--error);">*</span></label>
+                                        <select id="subject" name="subject" class="form-control" required>
+                                            <option value="" disabled selected>Select a subject</option>
+                                            <option value="general">General Inquiry</option>
+                                            <option value="menu">Menu Question</option>
+                                            <option value="ordering">Ordering Issue</option>
+                                            <option value="payment">Payment Question</option>
+                                            <option value="feedback">Feedback</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select a subject.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="message" class="form-label">Message <span style="color:var(--error);">*</span></label>
+                                <textarea id="message" name="message" class="form-control" rows="4" maxlength="1000" required placeholder="How can we help you?"></textarea>
+                                <div class="char-count" id="char-count">0 / 1000</div>
+                                <div class="invalid-feedback">Please enter your message.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-block" id="submit-btn">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -735,11 +1127,12 @@
     <section class="map-section">
         <div class="container">
             <div class="map-container">
-                <div class="map-placeholder">
-                    <i class="fas fa-map-marked-alt"></i>
-                    <h3>Interactive Map</h3>
-                    <p>Map of Literacy Tree School Location</p>
-                </div>
+                <iframe
+                    src="https://www.google.com/maps?q=Literacy+Tree+School,+Lusaka,+Zambia&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade" title="Literacy Tree School Location">
+  
+                </iframe>
             </div>
         </div>
     </section>
@@ -754,71 +1147,61 @@
 
             <div class="faq-container">
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>How do I place an order for my child?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>You can place an order through our online ordering system. Simply log in to your account, select the menu items you'd like to order, add them to your cart, and proceed to checkout. You can choose from various payment options including mobile money and credit card.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>What payment methods do you accept?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>We accept multiple payment methods including Airtel Money, MTN Money, Zamtel Money, and Visa card payments. All transactions are secure and you'll receive an email receipt after payment.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>Can I order in advance?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>Yes, you can place orders up to one week in advance. This is especially helpful for planning meals for the entire week. Simply select the date when placing your order.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>What if my child has dietary restrictions?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>We accommodate various dietary restrictions. Our menu includes vegetarian options, and we clearly label items containing common allergens. If your child has specific dietary needs, please contact us directly to discuss options.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                                        <div class="faq-question">
-                        <span>What if my child has dietary restrictions?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>We accommodate various dietary restrictions. Our menu includes vegetarian options, and we clearly label items containing common allergens. If your child has specific dietary needs, please contact us directly to discuss options.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>How do I cancel or modify an order?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>You can cancel or modify orders up to 24 hours before the delivery date. Log in to your account, go to your order history, and select the order you wish to modify. For same-day changes, please call us directly.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>Do you provide refunds?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="faq-answer">
+                    <div class="faq-answer" role="region">
                         <p>Refunds are available for orders cancelled at least 24 hours in advance. In case of any issues with your order, please contact us within 24 hours, and we'll work to resolve the situation promptly.</p>
                     </div>
                 </div>
@@ -832,12 +1215,12 @@
             <div class="footer-content">
                 <div class="footer-column">
                     <h3>Literacy Tree School</h3>
-                    <p>Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 14px;">Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
                     <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
                 <div class="footer-column">
@@ -860,157 +1243,281 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
+                <p>&copy; 2024 Literacy Tree School. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // FAQ Accordion
-        document.addEventListener('DOMContentLoaded', function() {
-            const faqItems = document.querySelectorAll('.faq-item');
-            
-            faqItems.forEach(item => {
-                const question = item.querySelector('.faq-question');
-                
-                question.addEventListener('click', function() {
-                    // Close all other items
-                    faqItems.forEach(otherItem => {
-                        if (otherItem !== item) {
-                            otherItem.classList.remove('active');
-                        }
-                    });
-                    
-                    // Toggle current item
-                    item.classList.toggle('active');
+        // ===== DARK MODE TOGGLE =====
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
 
-                    // Add this to your existing JavaScript code
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                darkModeToggle.checked = true;
+                mobileDarkModeToggle.checked = true;
+            }
+        }
 
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('dark-mode-toggle');
-const mobileDarkModeToggle = document.getElementById('mobile-dark-mode-toggle');
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
 
-// 1. Check for saved theme preference or default to light mode
-const currentTheme = localStorage.getItem('theme');
-if (currentTheme) {
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    
-    // Set the state of both toggles based on the saved theme
-    if (currentTheme === 'dark') {
-        darkModeToggle.checked = true;
-        mobileDarkModeToggle.checked = true;
-    }
-}
+        darkModeToggle.addEventListener('change', function (e) {
+            mobileDarkModeToggle.checked = e.target.checked;
+            switchTheme(e);
+        });
 
-// 2. Define the function to switch the theme
-function switchTheme() {
-    if (darkModeToggle.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-    }
-}
+        mobileDarkModeToggle.addEventListener('change', function (e) {
+            darkModeToggle.checked = e.target.checked;
+            switchTheme(e);
+        });
 
-// 3. Add event listeners for both toggles
-// When the desktop toggle is changed
-darkModeToggle.addEventListener('change', function() {
-    // Sync the mobile toggle
-    mobileDarkModeToggle.checked = this.checked;
-    // Apply the theme change
-    switchTheme();
-});
-
-// When the mobile toggle is changed
-mobileDarkModeToggle.addEventListener('change', function() {
-    // Sync the desktop toggle
-    darkModeToggle.checked = this.checked;
-    // Apply the theme change
-    switchTheme();
-});
-
-// 4. Check for system preference if no local theme is set
-const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-// This part runs on the initial page load
-if (prefersDarkScheme.matches && !currentTheme) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    darkModeToggle.checked = true;
-    mobileDarkModeToggle.checked = true;
-}
-
-// (Optional) Listen for changes in system theme preference
-prefersDarkScheme.addEventListener('change', (e) => {
-    // Only change the theme if the user hasn't set a preference in our app
-    if (!localStorage.getItem('theme')) {
-        if (e.matches) {
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        if (prefersDarkScheme.matches && !currentTheme) {
             document.documentElement.setAttribute('data-theme', 'dark');
             darkModeToggle.checked = true;
             mobileDarkModeToggle.checked = true;
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-            darkModeToggle.checked = false;
-            mobileDarkModeToggle.checked = false;
         }
-    }
-});
-                });
+
+        // ===== DOM CONTENT LOADED =====
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ===== MOBILE MENU =====
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
+            const mobileNavClose = document.getElementById('mobile-nav-close');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+            mobileMenuToggle.addEventListener('click', function () {
+                this.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                mobileNavOverlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
             });
 
-            // Contact form submission
-            const contactForm = document.getElementById('contact-form');
-            
-            contactForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Get form data
-                const formData = {
-                    firstName: document.getElementById('first-name').value,
-                    lastName: document.getElementById('last-name').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    subject: document.getElementById('subject').value,
-                    message: document.getElementById('message').value
-                };
-                
-                // Show success message
-                const successAlert = document.createElement('div');
-                successAlert.className = 'alert alert-success';
-                successAlert.innerHTML = `
-                    <strong>Thank you for contacting us!</strong> We have received your message and will get back to you within 24 hours.
-                `;
-                
-                contactForm.parentNode.insertBefore(successAlert, contactForm);
-                contactForm.reset();
-                
-                // Remove alert after 5 seconds
-                setTimeout(() => {
-                    successAlert.style.opacity = '0';
-                    successAlert.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => {
-                        successAlert.remove();
-                    }, 500);
-                }, 5000);
+            function closeMobileMenu() {
+                mobileMenuToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                mobileNavOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            mobileNavOverlay.addEventListener('click', closeMobileMenu);
+            mobileNavClose.addEventListener('click', closeMobileMenu);
+
+            mobileNavLinks.forEach(function (link) {
+                link.addEventListener('click', closeMobileMenu);
             });
 
-            // Form validation
-            const inputs = document.querySelectorAll('.form-control');
-            
-            inputs.forEach(input => {
-                input.addEventListener('blur', function() {
-                    if (this.hasAttribute('required') && !this.value.trim()) {
-                        this.style.borderColor = 'var(--error)';
-                    } else {
-                        this.style.borderColor = '';
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
+                    closeMobileMenu();
+                }
+            });
+
+            // ===== SMOOTH SCROLL =====
+            document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+                anchor.addEventListener('click', function (e) {
+                    var href = this.getAttribute('href');
+                    if (href === '#') return;
+                    e.preventDefault();
+                    var target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
-                
-                input.addEventListener('focus', function() {
-                    this.style.borderColor = '';
+            });
+
+            // ===== FAQ ACCORDION =====
+            var faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(function (item) {
+                var question = item.querySelector('.faq-question');
+
+                function toggleFAQ() {
+                    var isActive = item.classList.contains('active');
+
+                    // Close all
+                    faqItems.forEach(function (otherItem) {
+                        otherItem.classList.remove('active');
+                        otherItem.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+                    });
+
+                    // Toggle current
+                    if (!isActive) {
+                        item.classList.add('active');
+                        question.setAttribute('aria-expanded', 'true');
+                    }
+                }
+
+                question.addEventListener('click', toggleFAQ);
+
+                // Keyboard support
+                question.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleFAQ();
+                    }
                 });
+            });
+
+            // ===== CHARACTER COUNT =====
+            var messageField = document.getElementById('message');
+            var charCount = document.getElementById('char-count');
+
+            messageField.addEventListener('input', function () {
+                var len = this.value.length;
+                var max = parseInt(this.getAttribute('maxlength'));
+                charCount.textContent = len + ' / ' + max;
+
+                charCount.classList.remove('near-limit', 'at-limit');
+                if (len >= max) {
+                    charCount.classList.add('at-limit');
+                } else if (len >= max * 0.85) {
+                    charCount.classList.add('near-limit');
+                }
+            });
+
+            // ===== FORM VALIDATION & SUBMISSION =====
+            var contactForm = document.getElementById('contact-form');
+            var submitBtn = document.getElementById('submit-btn');
+            var formAlert = document.getElementById('form-alert');
+            var honeypot = document.getElementById('website');
+
+            function validateField(field) {
+                var isValid = true;
+
+                if (field.hasAttribute('required') && !field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    field.classList.remove('is-valid');
+                    isValid = false;
+                } else if (field.type === 'email' && field.value.trim()) {
+                    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(field.value.trim())) {
+                        field.classList.add('is-invalid');
+                        field.classList.remove('is-valid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                        field.classList.add('is-valid');
+                    }
+                } else if (field.value.trim()) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.remove('is-invalid', 'is-valid');
+                }
+
+                return isValid;
+            }
+
+            // Real-time validation on blur
+            var formFields = contactForm.querySelectorAll('.form-control');
+            formFields.forEach(function (field) {
+                field.addEventListener('blur', function () {
+                    validateField(this);
+                });
+
+                // Remove error state on input
+                field.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        validateField(this);
+                    }
+                });
+            });
+
+            contactForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Honeypot check - bots fill this, humans don't
+                if (honeypot.value) {
+                    // Silently ignore spam
+                    contactForm.reset();
+                    return;
+                }
+
+                // Validate all fields
+                var isFormValid = true;
+                formFields.forEach(function (field) {
+                    if (!validateField(field)) {
+                        isFormValid = false;
+                    }
+                });
+
+                if (!isFormValid) {
+                    formAlert.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i><span>Please fill in all required fields correctly.</span></div>';
+                    // Focus first invalid field
+                    var firstInvalid = contactForm.querySelector('.is-invalid');
+                    if (firstInvalid) firstInvalid.focus();
+                    return;
+                }
+
+                // Clear previous alerts
+                formAlert.innerHTML = '';
+
+                // Show loading state
+                var originalBtnHTML = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
+                submitBtn.disabled = true;
+
+                // Simulate API call (replace with real endpoint in production)
+                setTimeout(function () {
+                    // Collect form data
+                    var formData = {
+                        firstName: document.getElementById('first-name').value.trim(),
+                        lastName: document.getElementById('last-name').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        phone: document.getElementById('phone').value.trim(),
+                        subject: document.getElementById('subject').value,
+                        message: document.getElementById('message').value.trim(),
+                        timestamp: new Date().toISOString()
+                    };
+
+                    // Success
+                    formAlert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i><span><strong>Thank you for contacting us!</strong> We have received your message and will get back to you within 24 hours.</span></div>';
+
+                    // Reset form and validation states
+                    contactForm.reset();
+                    formFields.forEach(function (field) {
+                        field.classList.remove('is-valid', 'is-invalid');
+                    });
+                    charCount.textContent = '0 / 1000';
+                    charCount.classList.remove('near-limit', 'at-limit');
+
+                    // Restore button
+                    submitBtn.innerHTML = originalBtnHTML;
+                    submitBtn.disabled = false;
+
+                    // Scroll to alert
+                    formAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    // Auto-dismiss alert after 8 seconds
+                    setTimeout(function () {
+                        var alertEl = formAlert.querySelector('.alert');
+                        if (alertEl) {
+                            alertEl.style.opacity = '0';
+                            alertEl.style.transition = 'opacity 0.5s ease';
+                            setTimeout(function () {
+                                formAlert.innerHTML = '';
+                            }, 500);
+                        }
+                    }, 8000);
+
+                }, 1500);
             });
         });
     </script>
 </body>
+
 </html>

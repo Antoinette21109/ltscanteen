@@ -164,13 +164,30 @@
                 <div class="header-actions">
                     <nav>
                         <ul class="nav-links">
-                            <li><a href="index.html">Home</a></li>
-                            <li><a href="menu.html" style="color: var(--primary);">Menu</a></li>
-                            <li><a href="index.html" class="btn btn-outline">Login</a></li>
-                            <li><div class="theme-toggle"><input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox"><label for="dark-mode-toggle" class="theme-toggle-label"><i class="fas fa-sun theme-icon sun-icon"></i><i class="fas fa-moon theme-icon moon-icon"></i></label></div></li>
+                            <li><a href="/">Home</a></li>
+                            <li><a href="menu.html">Menu</a></li>
+                            <li><a href="about.html">About</a></li>
+                            <li><a href="contact.html">Contact</a></li>
+                            <li><a href="#" class="btn btn-outline" id="login-btn">Login</a></li>
+                            <li class="theme-toggle-wrapper">
+                                <div class="theme-toggle">
+                                    <input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox">
+                                    <label for="dark-mode-toggle" class="theme-toggle-label">
+                                        <span class="theme-toggle-ball"></span>
+                                        <i class="fas fa-sun theme-icon sun-icon"></i>
+                                        <i class="fas fa-moon theme-icon moon-icon"></i>
+                                    </label>
+                                </div>
+                            </li>
                         </ul>
                     </nav>
-                    <button class="mobile-menu-btn" id="mobile-menu-toggle"><div class="hamburger-icon"><span></span><span></span><span></span></div></button>
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                        <div class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -288,13 +305,42 @@
         </div>
     </section>
 
+   <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column"><h3>Literacy Tree School</h3><p>Providing quality education and nutritious meals.</p></div>
-                <div class="footer-column"><h3>Contact Info</h3><ul class="footer-links"><li><i class="fas fa-phone" style="margin-right: 10px;"></i> +260 0974754810</li></ul></div>
+                <div class="footer-column">
+                    <h3>Literacy Tree School</h3>
+                    <p>Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Info</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Makeni Bonaventure Area, Lusaka, Zambia</li>
+                        <li><i class="fas fa-phone" style="margin-right: 10px;"></i> 0977845317</li>
+                        <li><i class="fas fa-envelope" style="margin-right: 10px;"></i> info@literacytree.edu.zm</li>
+                    </ul>
+                </div>
             </div>
-            <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">&copy; 2023 Literacy Tree School. All rights reserved.</div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
