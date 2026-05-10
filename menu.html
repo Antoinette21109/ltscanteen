@@ -7,954 +7,220 @@
     <meta name="description" content="View our nutritious menu options for your children at Literacy Tree School Canteen.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Include all the CSS variables and styles from your main page */
         /* CSS Variables */
         :root {
-            --primary: #2e7d32;
-            --primary-dark: #1b5e20;
-            --primary-light: #4caf50;
-            --secondary: #ff9800;
-            --secondary-dark: #f57c00;
-            --accent: #2196f3;
-            --text: #333333;
-            --text-light: #666666;
-            --background: #f5f5f5;
-            --white: #ffffff;
-            --error: #f44336;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
-            --radius: 8px;
-            --transition: all 0.3s ease;
-            --container-max-width: 1200px;
-        }
-
-        /* Global Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--background);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        .container {
-            width: 100%;
-            max-width: var(--container-max-width);
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: 15px;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-        }
-
-        h2 {
-            font-size: 2rem;
-        }
-
-        h3 {
-            font-size: 1.75rem;
-        }
-
-        h4 {
-            font-size: 1.5rem;
-        }
-
-        h5 {
-            font-size: 1.25rem;
-        }
-
-        h6 {
-            font-size: 1rem;
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 24px;
-            background-color: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn i {
-            margin-right: 8px;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background-color: var(--secondary);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--secondary-dark);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background-color: var(--primary);
-            color: var(--white);
-        }
-
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .btn-block {
-            width: 100%;
-        }
-
-        /* Cards */
-        .card {
-            background-color: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .card-header {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 0;
-        }
-
-        /* Forms */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
-            border-radius: var(--radius);
-            font-size: 16px;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-        }
-
-        /* Header Styles */
-        header {
-            background-color: var(--white);
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-        }
-
-        .logo img {
-            height: 50px;
-            margin-right: 10px;
-        }
-
-        .logo h1 {
-            font-size: 24px;
-            color: var(--primary);
-            margin-bottom: 0;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-
-        .nav-links li {
-            margin-left: 25px;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: var(--transition);
-            position: relative;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 0;
-            background-color: var(--primary);
-            transition: var(--transition);
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        /* Search Bar */
-        .search-container {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 16px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: var(--radius);
-            font-size: 16px;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-        }
-
-        /* Menu Section */
-        .menu-section {
-            padding: 60px 0;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .section-header p {
-            max-width: 700px;
-            margin: 0 auto;
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-
-        .menu-categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 30px;
-            justify-content: center;
-        }
-
-        .category-btn {
-            padding: 10px 20px;
-            background-color: var(--white);
-            border: 1px solid #ddd;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .category-btn.active {
-            background-color: var(--primary);
-            color: var(--white);
-            border-color: var(--primary);
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .menu-item {
-            overflow: hidden;
-            position: relative;
-        }
-
-        .menu-item-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: var(--radius) var(--radius) 0 0;
-            transition: var(--transition);
-        }
-
-        .menu-item:hover .menu-item-img {
-            transform: scale(1.05);
-        }
-
-        .menu-item-content {
-            padding: 20px;
-        }
-
-        .menu-item-title {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .menu-item-price {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .menu-item-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--secondary);
-            color: var(--white);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .menu-item-info {
-            margin: 10px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .menu-item-info small {
-            color: var(--text-light);
-            font-size: 12px;
-        }
-
-        .menu-item-info i {
-            margin-right: 5px;
-            width: 12px;
-        }
-
-        .menu-nutrition {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .menu-nutrition h5 {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .nutrition-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .nutrition-tag {
-            padding: 3px 8px;
-            background-color: rgba(46, 125, 50, 0.1);
-            color: var(--primary);
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        /* Footer Styles */
-        footer {
-            background-color: var(--primary-dark);
-            color: var(--white);
-            padding: 60px 0 30px;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .footer-column h3 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .footer-column h3::after {
-            content: '';
-            position: absolute;
-            width: 50px;
-            height: 2px;
-            background-color: var(--secondary);
-            bottom: -8px;
-            left: 0;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .footer-links a:hover {
-            color: var(--white);
-            padding-left: 5px;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: var(--white);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .social-link:hover {
-            background-color: var(--secondary);
-            transform: translateY(-3px);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Hamburger Menu Button Styles */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--primary);
-            padding: 8px;
-            border-radius: var(--radius);
-            transition: var(--transition);
-            position: relative;
-            z-index: 1001;
-        }
-
-        .mobile-menu-btn:hover {
-            background-color: rgba(46, 125, 50, 0.1);
-            transform: scale(1.05);
-        }
-
-        .mobile-menu-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-        }
-
-        /* Hamburger Icon Animation */
-        .hamburger-icon {
-            display: inline-block;
-            position: relative;
-            width: 24px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .hamburger-icon span {
-            display: block;
-            position: absolute;
-            height: 3px;
-            width: 100%;
-            background: var(--primary);
-            border-radius: 3px;
-            opacity: 1;
-            left: 0;
-            transform: rotate(0deg);
-            transition: all 0.25s ease-in-out;
-        }
-
-        .hamburger-icon span:nth-child(1) {
-            top: 0px;
-        }
-
-        .hamburger-icon span:nth-child(2) {
-            top: 8px;
-        }
-
-        .hamburger-icon span:nth-child(3) {
-            top: 16px;
-        }
-
-        /* Active state - transforms hamburger to X */
-        .mobile-menu-btn.active .hamburger-icon span:nth-child(1) {
-            top: 8px;
-            transform: rotate(135deg);
-        }
-
-        .mobile-menu-btn.active .hamburger-icon span:nth-child(2) {
-            opacity: 0;
-            left: -60px;
-        }
-
-        .mobile-menu-btn.active .hamburger-icon span:nth-child(3) {
-            top: 8px;
-            transform: rotate(-135deg);
-        }
-
-        /* Mobile Navigation Menu */
-        .mobile-nav {
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 80%;
-            max-width: 320px;
-            height: 100vh;
-            background-color: var(--white);
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .mobile-nav.active {
-            left: 0;
-        }
-
-        /* Mobile Navigation Overlay */
-        .mobile-nav-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 999;
-        }
-
-        .mobile-nav-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Mobile Navigation Header */
-        .mobile-nav-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            background-color: var(--primary);
-            color: var(--white);
-        }
-
-        .mobile-nav-logo {
-            display: flex;
-            align-items: center;
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .mobile-nav-logo i {
-            margin-right: 8px;
-            font-size: 24px;
-        }
-
-        .mobile-nav-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--white);
-            padding: 5px;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .mobile-nav-close:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: rotate(90deg);
-        }
-
-        /* Mobile Navigation Links */
-        .mobile-nav-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .mobile-nav-links li {
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .mobile-nav-links li:last-child {
-            border-bottom: none;
-        }
-
-        .mobile-nav-links a {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mobile-nav-links a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 0;
-            background-color: rgba(46, 125, 50, 0.05);
-            transition: width 0.3s ease;
-        }
-
-        .mobile-nav-links a:hover::before {
-            width: 100%;
-        }
-
-        .mobile-nav-links a:hover {
-            color: var(--primary);
-            padding-left: 25px;
-        }
-
-        .mobile-nav-links a i {
-            margin-right: 12px;
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Mobile Navigation User Section */
-        .mobile-nav-user {
-            padding: 20px;
-            border-top: 1px solid #eee;
-            background-color: #f9f9f9;
-        }
-
-        .mobile-nav-user-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .mobile-nav-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-        }
-
-        .mobile-nav-user-details h4 {
-            margin: 0;
-            font-size: 16px;
-            color: var(--text);
-        }
-
-        .mobile-nav-user-details p {
-            margin: 0;
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        .mobile-nav-logout {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            background-color: var(--error);
-            color: var(--white);
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: var(--transition);
-            width: 100%;
-            justify-content: center;
-        }
-
-        .mobile-nav-logout:hover {
-            background-color: #d32f2f;
-            transform: translateY(-1px);
-        }
-
-        .mobile-nav-logout i {
-            margin-right: 8px;
-        }
-
-        /* Notification Toast */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: var(--radius);
-            color: var(--white);
-            box-shadow: var(--shadow-hover);
-            z-index: 1001;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast-success {
-            background-color: var(--success);
-        }
-
-        .toast-error {
-            background-color: var(--error);
-        }
-
-        .toast-warning {
-            background-color: var(--warning);
-        }
-
-        .toast-info {
-            background-color: var(--accent);
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 992px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .section-header h2 {
-                font-size: 2rem;
-            }
-
-            .menu-grid {
-                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            }
-        }
-
-        @media (max-width: 576px) {
-            .menu-section {
-                padding: 40px 0;
-            }
-
-            .menu-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .footer-column h3::after {
-                left: 50%;
-                transform: translateX(-50%);
-            }
-
-            .social-links {
-                justify-content: center;
-            }
-        }
+            --primary: #2e7d32; --primary-dark: #1b5e20; --primary-light: #4caf50; --secondary: #ff9800;
+            --secondary-dark: #f57c00; --accent: #2196f3; --text: #333333; --text-light: #666666;
+            --background: #f5f5f5; --white: #ffffff; --error: #f44336; --success: #4caf50; --warning: #ff9800;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
+            --radius: 8px; --transition: all 0.3s ease; --container-max-width: 1200px;
+            --card-bg: #ffffff; --border-color: #ddd; --input-bg: #ffffff;
+            --mtn-color: #FFC300; --airtel-color: #ED1C24;
+        }
+        [data-theme="dark"] {
+            --primary: #4caf50; --primary-dark: #2e7d32; --primary-light: #81c784; --secondary: #ffb74d;
+            --secondary-dark: #ff9800; --accent: #64b5f6; --text: #e0e0e0; --text-light: #bdbdbd;
+            --background: #121212; --white: #1e1e1e; --error: #ef5350; --success: #66bb6a; --warning: #ffb74d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3); --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
+            --card-bg: #2a2a2a; --border-color: #444; --input-bg: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background); color: var(--text); line-height: 1.6; overflow-x: hidden; transition: background-color var(--transition), color var(--transition); }
+        .container { width: 100%; max-width: var(--container-max-width); margin: 0 auto; padding: 0 20px; }
+        h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
+        p { margin-bottom: 15px; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px; background-color: var(--primary); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: var(--transition); box-shadow: var(--shadow); width: 100%; }
+        .btn:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+        .btn:active { transform: translateY(0); }
+        .btn-secondary { background-color: var(--secondary); } .btn-secondary:hover { background-color: var(--secondary-dark); }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); width: auto; }
+        .btn-outline:hover { background-color: var(--primary); color: #fff; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; width: auto; }
+
+        .card { background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; transition: var(--transition); position: relative; overflow: hidden; }
+        .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 16px; background-color: var(--input-bg); color: var(--text); transition: var(--transition); }
+        .form-control:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2); }
+
+        header { background-color: var(--white); box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; transition: background-color var(--transition); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; }
+        .logo { display: flex; align-items: center; }
+        .logo h1 { font-size: 24px; color: var(--primary); margin-bottom: 0; }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .nav-links { display: flex; list-style: none; align-items: center; margin: 0; }
+        .nav-links li { margin-left: 25px; }
+        .nav-links a { text-decoration: none; color: var(--text); font-weight: 500; transition: var(--transition); }
+        .nav-links a:hover { color: var(--primary); }
+
+        .cart-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--secondary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-hover); z-index: 90; cursor: pointer; transition: var(--transition); border: none; }
+        .cart-btn:hover { transform: scale(1.1); background-color: var(--secondary-dark); }
+        .cart-badge { position: absolute; top: -5px; right: -5px; background-color: var(--error); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+
+        .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .cart-overlay.active { opacity: 1; visibility: visible; }
+        .cart-sidebar { position: fixed; top: 0; right: -400px; width: 100%; max-width: 400px; height: 100%; background-color: var(--card-bg); z-index: 999; transition: all 0.3s ease; display: flex; flex-direction: column; color: var(--text); }
+        .cart-sidebar.active { right: 0; }
+        .cart-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
+        .cart-footer { padding: 20px; border-top: 1px solid var(--border-color); }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .cart-item-details h4 { margin: 0; font-size: 16px; }
+        .cart-item-details p { margin: 5px 0 0; font-size: 14px; color: var(--text-light); }
+        .cart-item-remove { color: var(--error); cursor: pointer; background: none; border: none; font-size: 18px; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: var(--card-bg); border-radius: var(--radius); padding: 30px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; color: var(--text); animation: modalFadeIn 0.3s ease; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light); }
+        .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .payment-option { border: 2px solid var(--border-color); border-radius: var(--radius); padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); }
+        .payment-option:hover { border-color: var(--primary); }
+        .payment-option.active { border-color: var(--primary); background-color: rgba(46, 125, 50, 0.1); }
+        .payment-option.mtn.active { border-color: var(--mtn-color); background-color: rgba(255, 195, 0, 0.1); }
+        .payment-option.airtel.active { border-color: var(--airtel-color); background-color: rgba(237, 28, 36, 0.1); }
+        .payment-logo { font-size: 24px; font-weight: 800; margin-bottom: 5px; }
+        .ussd-instructions { background-color: var(--background); padding: 15px; border-radius: var(--radius); margin-bottom: 20px; font-size: 14px; border-left: 4px solid var(--accent); display: none; }
+
+        .search-container { margin-bottom: 20px; position: relative; }
+        .search-input { width: 100%; padding: 12px 16px 12px 45px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 16px; background-color: var(--input-bg); color: var(--text); }
+        .search-input:focus { border-color: var(--primary); outline: none; }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .menu-section { padding: 60px 0; }
+        .section-header { text-align: center; margin-bottom: 40px; }
+        .section-header h2 { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
+        .menu-categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }
+        .category-btn { padding: 10px 20px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 30px; cursor: pointer; transition: var(--transition); font-weight: 500; color: var(--text); }
+        .category-btn.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
+        
+        /* Updated Menu Grid for smaller cards */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .menu-item { overflow: hidden; position: relative; }
+        .menu-item-img { width: 100%; height: 140px; object-fit: cover; border-radius: var(--radius) var(--radius) 0 0; transition: var(--transition); }
+        .menu-item:hover .menu-item-img { transform: scale(1.05); }
+        .menu-item-content { padding: 15px; }
+        .menu-item-title { font-size: 16px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-item-price { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+        .menu-item-badge { position: absolute; top: 10px; right: 10px; background-color: var(--secondary); color: #fff; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; z-index: 2; }
+
+        .mobile-menu-btn { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--primary); padding: 8px; z-index: 1001; }
+        .hamburger-icon { display: inline-block; position: relative; width: 24px; height: 20px; cursor: pointer; }
+        .hamburger-icon span { display: block; position: absolute; height: 3px; width: 100%; background: var(--primary); border-radius: 3px; opacity: 1; left: 0; transform: rotate(0deg); transition: all 0.25s ease-in-out; }
+        .hamburger-icon span:nth-child(1) { top: 0px; } .hamburger-icon span:nth-child(2) { top: 8px; } .hamburger-icon span:nth-child(3) { top: 16px; }
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(1) { top: 8px; transform: rotate(135deg); }
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(2) { opacity: 0; left: -60px; }
+        .mobile-menu-btn.active .hamburger-icon span:nth-child(3) { top: 8px; transform: rotate(-135deg); }
+        .mobile-nav-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
+        .mobile-nav-overlay.active { opacity: 1; visibility: visible; }
+        .mobile-nav { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100vh; background-color: var(--white); box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; overflow-y: auto; }
+        .mobile-nav.active { left: 0; }
+        .mobile-nav-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); background-color: var(--primary); color: #fff; }
+        .mobile-nav-logo { display: flex; align-items: center; font-size: 20px; font-weight: 700; }
+        .mobile-nav-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #fff; padding: 5px; }
+
+        footer { background-color: var(--primary-dark); color: #fff; padding: 60px 0 30px; }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-links { list-style: none; } .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: rgba(255,255,255,0.8); text-decoration: none; }
+        .social-links { display: flex; gap: 15px; margin-top: 20px; }
+        .social-link { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background-color: rgba(255,255,255,0.1); border-radius: 50%; color: #fff; text-decoration: none; }
+
+        .theme-toggle { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .theme-toggle-checkbox { opacity: 0; width: 0; height: 0; }
+        .theme-toggle-label { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: var(--transition); border-radius: 34px; overflow: hidden; }
+        .theme-toggle-label:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: var(--transition); border-radius: 50%; z-index: 2; }
+        .theme-toggle-checkbox:checked + .theme-toggle-label { background-color: var(--primary); }
+        .theme-toggle-checkbox:checked + .theme-toggle-label:before { transform: translateX(30px); }
+        .theme-icon { position: absolute; top: 50%; transform: translateY(-50%); font-size: 14px; color: white; transition: var(--transition); z-index: 1; }
+        .sun-icon { left: 8px; } .moon-icon { right: 8px; }
+        .theme-toggle-checkbox:checked + .theme-toggle-label .sun-icon { opacity: 0; }
+        .theme-toggle-checkbox:not(:checked) + .theme-toggle-label .moon-icon { opacity: 0; }
+
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: var(--radius); color: #fff; box-shadow: var(--shadow-hover); z-index: 1001; transform: translateX(120%); transition: transform 0.3s ease; }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background-color: var(--success); } .toast-error { background-color: var(--error); } .toast-info { background-color: var(--accent); }
+
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 992px) { .nav-links { display: none; } .mobile-menu-btn { display: flex; align-items: center; justify-content: center; } }
+        @media (max-width: 576px) { .menu-grid { grid-template-columns: 1fr 1fr; gap: 15px; } .payment-options { grid-template-columns: 1fr; } .menu-item-img { height: 110px; } .menu-item-title { font-size: 14px; } .menu-item-price { font-size: 16px; margin-bottom: 8px; } .menu-item-content { padding: 10px; } .btn { padding: 8px 12px; font-size: 12px; } }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <img src="school-logo.jpg" alt="Literacy Tree Canteen Logo" style="width: 32px; height: 32px; margin-right: 10px;">
-                    <h1>Literacy Tree Canteen</h1>
+    <img src="/School-logo.webp" alt="Literacy Tree School Logo" style="height: 50px; width: auto; margin-right: 10px;">
+    <h1>Literacy Tree Canteen</h1>
+</div>
+                <div class="header-actions">
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="menu.html" style="color: var(--primary);">Menu</a></li>
+                            <li><a href="index.html" class="btn btn-outline">Login</a></li>
+                            <li><div class="theme-toggle"><input type="checkbox" id="dark-mode-toggle" class="theme-toggle-checkbox"><label for="dark-mode-toggle" class="theme-toggle-label"><i class="fas fa-sun theme-icon sun-icon"></i><i class="fas fa-moon theme-icon moon-icon"></i></label></div></li>
+                        </ul>
+                    </nav>
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle"><div class="hamburger-icon"><span></span><span></span><span></span></div></button>
                 </div>
-                <nav>
-                    <ul class="nav-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="menu.html" style="color: var(--primary);">Menu</a></li>
-                        <li><a href="about.html">About</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="index.html" class="btn btn-outline">Login</a></li>
-                    </ul>
-                    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
-                        <div class="hamburger-icon">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </button>
-                </nav>
             </div>
         </div>
         <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
         <nav class="mobile-nav" id="mobile-nav">
-            <div class="mobile-nav-header">
-                <div class="mobile-nav-logo">
-                    <i class="fas fa-leaf"></i>
-                    <span>Literacy Tree</span>
-                </div>
-                <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close menu">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
+            <div class="mobile-nav-header"><div class="mobile-nav-logo"><i class="fas fa-leaf"></i><span>Literacy Tree</span></div><button class="mobile-nav-close" id="mobile-nav-close"><i class="fas fa-times"></i></button></div>
             <ul class="mobile-nav-links">
-                <li>
-                    <a href="index.html" class="mobile-nav-link">
-                        <i class="fas fa-home"></i>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="menu.html" class="mobile-nav-link">
-                        <i class="fas fa-utensils"></i>
-                        <span>Menu</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="about.html" class="mobile-nav-link">
-                        <i class="fas fa-info-circle"></i>
-                        <span>About</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="contact.html" class="mobile-nav-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>Contact</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.html" class="mobile-nav-link" id="mobile-login-btn">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Login</span>
-                    </a>
-                </li>
+                <li><a href="index.html"><i class="fas fa-home"></i><span>Home</span></a></li>
+                <li><a href="menu.html"><i class="fas fa-utensils"></i><span>Menu</span></a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- Menu Section -->
+    <button class="cart-btn" id="cart-toggle"><i class="fas fa-shopping-cart"></i><span class="cart-badge" id="cart-badge" style="display: none;">0</span></button>
+
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header"><h3>Your Cart</h3><button class="modal-close" id="close-cart"><i class="fas fa-times"></i></button></div>
+        <div class="cart-body" id="cart-body"><p>Your cart is empty.</p></div>
+        <div class="cart-footer">
+            <div class="cart-total"><span>Total:</span><span id="cart-total-price">K0</span></div>
+            <button class="btn btn-block btn-secondary" id="checkout-btn" disabled>Proceed to Payment</button>
+        </div>
+    </div>
+
+    <div class="modal" id="checkout-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Mobile Money Checkout</h3><button class="modal-close" id="close-checkout"><i class="fas fa-times"></i></button></div>
+            <div class="payment-options">
+                <div class="payment-option mtn" data-method="mtn"><div class="payment-logo" style="color: var(--mtn-color);">MTN</div><small>Mobile Money</small></div>
+                <div class="payment-option airtel" data-method="airtel"><div class="payment-logo" style="color: var(--airtel-color);">Airtel</div><small>Money</small></div>
+            </div>
+            <div class="ussd-instructions" id="ussd-instructions">
+                <strong><i class="fas fa-info-circle"></i> How it works:</strong><br>
+                1. Enter your details below.<br>
+                2. Click "Pay Now" to trigger the USSD push.<br>
+                3. Check your phone screen and enter your PIN to approve.
+            </div>
+            <form id="payment-form" style="display: none;">
+                <div class="form-group"><label class="form-label">Customer Name</label><input type="text" id="pay-name" class="form-control" placeholder="Enter parent/guardian name" required></div>
+                <div class="form-group"><label class="form-label" id="payment-label">Mobile Money Number</label><input type="tel" id="payment-phone" class="form-control" placeholder="e.g. 096XXXXXXX" required></div>
+                <button type="submit" class="btn btn-block" id="pay-now-btn">Pay Now</button>
+            </form>
+        </div>
+    </div>
+
     <section class="menu-section">
         <div class="container">
-            <div class="section-header">
-                <h2>Our Menu</h2>
-                <p>We offer a variety of nutritious and delicious meals for your children. All our meals are prepared with fresh ingredients and balanced nutrition in mind.</p>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" id="menu-search" placeholder="Search for menu items...">
-            </div>
-
+            <div class="section-header"><h2>Our Menu</h2><p>We offer a variety of nutritious and delicious meals for your children.</p></div>
+            <div class="search-container"><i class="fas fa-search search-icon"></i><input type="text" class="search-input" id="menu-search" placeholder="Search for menu items..."></div>
             <div class="menu-categories">
                 <button class="category-btn active" data-category="all">All Items</button>
                 <button class="category-btn" data-category="meals">Main Meals</button>
@@ -962,732 +228,264 @@
                 <button class="category-btn" data-category="extras">Extras</button>
                 <button class="category-btn" data-category="snacks">Snacks</button>
                 <button class="category-btn" data-category="fruits">Fruits</button>
-                 <button class="category-btn" data-category="weekly friday treats">Weekly Friday Treats</button>
+                <button class="category-btn" data-category="weekly friday treats">Friday Treats</button>
             </div>
+            <div class="menu-grid" id="menu-grid">
+                <!-- MAIN MEALS -->
+                <div class="menu-item card" data-category="meals"><img src="https://i.postimg.cc/W3Kt7fFv/Chicken-and-chips.jpg" alt="1 Piece chicken & chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">1 Piece chicken & chips</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://i.postimg.cc/qqjbYyTx/Sausage-and-Chips.jpg" alt="Sausage & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Sausage & Chips</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://i.postimg.cc/wTQbRKR2/Hot-Dog-and-chips.jpg" alt="Hot Dog & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Hot Dog & Chips</h3><div class="menu-item-price">K60</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://i.postimg.cc/gj2bt35j/quarter-Coated-chicken-and-chips.jpg" alt="Quarter Coated Chicken & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Quarter Coated Chicken & Chips</h3><div class="menu-item-price">K85</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><div class="menu-item-badge">Popular</div><img src="https://images.unsplash.com/photo-1562967916-eb82221dfb92?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80" alt="Quarter Chicken & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Quarter Chicken & Chips</h3><div class="menu-item-price">K85</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://img.freepik.com/premium-photo/crispy-chicken-chips-with-bright-background_144356-47535.jpg?w=900" alt="Coated Chicken & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Coated Chicken & Chips</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://tse4.mm.bing.net/th/id/OIP.3I_9QmdopNOWCvc8H1a40QHaHp?pid=ImgDet&o=7&rm=3" alt="T-Bone & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">T-Bone & Chips</h3><div class="menu-item-price">K85</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://th.bing.com/th?q=Spaghetti+with+Mince+Meat+Recipe&o=7&rm=3" alt="Spaghetti & Mince" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Spaghetti & Mince</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://i.postimg.cc/3wcX01Z0/rice-and-beef.jpg" alt="Rice & Beefstew" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Rice & Beefstew</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://tse2.mm.bing.net/th/id/OIP.L5Pxn6Xl4MgaTUSUgNhoIAHaKX?pid=ImgDetMain&o=7&rm=3" alt="Rice & Chicken" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Rice & Chicken</h3><div class="menu-item-price">K70</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1470&q=80" alt="Plain Beef Burger" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Plain Beef Burger</h3><div class="menu-item-price">K60</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://tse2.mm.bing.net/th/id/OIP.meQWP-w1KTRTQBkIT-V25wHaE7?pid=ImgDet&o=7&rm=3" alt="Beef Burger & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Beef Burger & Chips</h3><div class="menu-item-price">K85</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://tse1.mm.bing.net/th/id/OIP.v3pcqlHmXGGTldtGGPlk3gHaFj?pid=ImgDet&o=7&rm=3" alt="Nshima & Chicken" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Nshima & Chicken</h3><div class="menu-item-price">K60</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://alchetron.com/cdn/nshima-a1814c6b-6807-4cbd-aee9-6752cae5374-resize-750.png" alt="Nshima & Beefstew" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Nshima & Beefstew</h3><div class="menu-item-price">K60</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://th.bing.com/th/id/OSK.bb5f5b4ab4b83aeee634b441777a5746?w=200&h=126&c=7&rs=1&qlt=80&o=6&cdv=1&pid=16.1" alt="Chicken Wrap" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Chicken Wrap</h3><div class="menu-item-price">K45</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://th.bing.com/th/id/OSK.140b50c9f03a5475a073f34dfa67cf23?w=200&h=126&c=7&rs=1&qlt=80&o=6&cdv=1&pid=16.1" alt="Plain Chicken Burger" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Plain Chicken Burger</h3><div class="menu-item-price">K65</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="meals"><img src="https://happiestveganonearth.com/wp-content/uploads/2022/09/20220905_002001.jpg?w=2048" alt="Chicken Burger & Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Chicken Burger & Chips</h3><div class="menu-item-price">K90</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
 
-            <div class="menu-grid">
-                <!-- Main Meals -->
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://i.postimg.cc/W3Kt7fFv/Chicken-and-chips.jpg" alt="1 Piece chicken & chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">1 Piece chicken & chips</h3>
-                        <div class="menu-item-price">K65</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> High protein meal</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
+                <!-- DRINKS -->
+                <div class="menu-item card" data-category="drinks"><img src="https://5.imimg.com/data5/SELLER/Default/2021/12/VC/BW/HO/51865166/500ml-fanta-cold-drink-1000x1000.jpg" alt="Fanta" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Fanta</h3><div class="menu-item-price">K15</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://blackgoose.md/files/sprite05l.png" alt="Sprite" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Sprite</h3><div class="menu-item-price">K15</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://www.sugarcaneglasgow.co.uk/wp-content/uploads/2024/02/coke.jpg" alt="Coke" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Coke</h3><div class="menu-item-price">K15</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://th.bing.com/th?q=Fruiticana+Mixed+Berry&w=120&h=120&c=1&rs=1&qlt=70&o=7&cb=1&pid=InlineBlock&rm=3&mkt=en-WW&cc=ZM&setlang=en&adlt=moderate&t=1&mw=247" alt="Fruitcana" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Fruitcana</h3><div class="menu-item-price">K12</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://th.bing.com/th/id/OIP.aiNrNiwXLNeLBmDnWr49BgHaJ4?w=136&h=182&c=7&r=0&o=7&pid=1.7&rm=3" alt="Water" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Water</h3><div class="menu-item-price">K5</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://tse2.mm.bing.net/th/id/OIP.Dz2D96o7IqxDoKIkLhZglgAAAA?pid=ImgDet&w=192&h=284&c=7&o=7&rm=3" alt="Pepsi" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Pepsi</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://th.bing.com/th/id/OIP.OMAclaNU4RCTOb34xwj6jwHaNK?w=115&h=196&c=7&r=0&o=7&pid=1.7&rm=3" alt="Frooty" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Frooty</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://app.dealtio.com/uploads/all/l0AooQVNpypUT1iBTXl1kKrvrWhsppnqKTYzhjA3.jpg" alt="Hubbly Bubbly" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Hubbly Bubbly</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="drinks"><img src="https://tse3.mm.bing.net/th/id/OIP.nzzXRuYxuUu1BqbyOd6__QHaHa?pid=ImgDet&w=192&h=192&c=7&o=7&rm=3" alt="Mirinda" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Mirinda</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
 
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://i.postimg.cc/qqjbYyTx/Sausage-and-Chips.jpg" alt="2 Sausage & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Sausage & Chips</h3>
-                        <div class="menu-item-price">K65</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 450 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
+                <!-- EXTRAS -->
+                <div class="menu-item card" data-category="extras"><img src="https://th.bing.com/th/id/OIP.WxN2NEqqXoVQ_isq2B3j5QHaFP?w=277&h=187&c=7&r=0&o=7&pid=1.7&rm=3" alt="Chips" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Chips</h3><div class="menu-item-price">K25</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="extras"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1470&q=80" alt="Salads" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Salads</h3><div class="menu-item-price">K5</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="extras"><img src="https://th.bing.com/th/id/OIP.TwCBegkW_XiQVpULn6Ti5AHaE8?w=236&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Sandwiches" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Sandwiches</h3><div class="menu-item-price">K25</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
 
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://i.postimg.cc/wTQbRKR2/Hot-Dog-and-chips.jpg" alt="Hot Dog & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Hot Dog & Chips</h3>
-                        <div class="menu-item-price">K60</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 420 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
+                <!-- SNACKS -->
+                <div class="menu-item card" data-category="snacks"><img src="https://tse1.explicit.bing.net/th/id/OIP.JZjRiyvVuh38HoL_Dd1cnwHaGN?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Fritters" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Fritters</h3><div class="menu-item-price">K5</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="snacks"><img src="https://th.bing.com/th/id/OIP.Jz-mS3xtznxh3J1T5Lyg3wHaHa?w=165&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Crisps" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Crisps</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="snacks"><img src="https://th.bing.com/th/id/OIP.C81-afSmUATPS_rny58w_AHaH8?w=163&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Papas" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Papas</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
 
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://i.postimg.cc/gj2bt35j/quarter-Coated-chicken-and-chips.jpg" alt="Quarter Coated Chicken & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Quarter Coated Chicken & Chips</h3>
-                        <div class="menu-item-price">K70</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 550 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
+                <!-- WEEKLY FRIDAY TREATS -->
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.SRAolSgfhYYXN1ypno7adwHaE6?w=271&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Muffins" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Muffins</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.bHaPwotNGT8EawjwpOT9hgHaHi?w=181&h=185&c=7&r=0&o=7&pid=1.7&rm=3" alt="Crackers" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Crackers</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.mspTsQIV1LP7nAM7rToiiQHaHa?w=215&h=215&c=7&r=0&o=7&pid=1.7&rm=3" alt="Popcorns" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Popcorns</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.XFg83LJA8_skQvfd5cgPSwHaJ5?w=140&h=187&c=7&r=0&o=7&pid=1.7&rm=3" alt="Lollipops" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Lollipops</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.I1hzSjKbSjUsCPaV8vX1vQHaI2?w=158&h=189&c=7&r=0&o=7&pid=1.7&rm=3" alt="Jelly Tots" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Jelly Tots</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://www.beacon.co.za/-/media/Project/Tiger/Beacon-Treats/Beacon/products/packs/New-Maynards-60g/Maynards_60g_FV_FruitJubes-PTWR4.png?h=563" alt="Maynards" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Maynards</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="weekly friday treats"><img src="https://th.bing.com/th/id/OIP.lhiBy6RSo3vRtP8M0WGBmAHaHa?w=186&h=186&c=7&r=0&o=7&pid=1.7&rm=3" alt="Smarties" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Smarties</h3><div class="menu-item-price">Free</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
 
-                <div class="menu-item card" data-category="meals">
-                    <div class="menu-item-badge">Popular</div>
-                    <img src="https://images.unsplash.com/photo-1562967916-eb82221dfb92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Quarter Chicken & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Quarter Chicken & Chips</h3>
-                        <div class="menu-item-price">K80</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 600 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://img.freepik.com/premium-photo/crispy-chicken-chips-with-bright-background_144356-47535.jpg?w=900" alt="Coated Chicken & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Coated Chicken & Chips</h3>
-                        <div class="menu-item-price">K50</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 450 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://tse4.mm.bing.net/th/id/OIP.3I_9QmdopNOWCvc8H1a40QHaHp?pid=ImgDet&w=192&h=198&c=7&o=7&rm=3" alt="T-Bone & Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">T-Bone & Chips</h3>
-                        <div class="menu-item-price">K75</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 650 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://th.bing.com/th?q=Spaghetti+with+Mince+Meat+Recipe&w=120&h=120&c=1&rs=1&qlt=70&o=7&cb=1&pid=InlineBlock&rm=3&mkt=en-WW&cc=ZM&setlang=en&adlt=moderate&t=1&mw=247" alt="Spaghetti & Mince" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Spaghetti & Mince</h3>
-                        <div class="menu-item-price">K60</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 480 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://i.postimg.cc/3wcX01Z0/rice-and-beef.jpg" alt="Rice & Beefstew" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Rice & Beefstew</h3>
-                        <div class="menu-item-price">K65</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 520 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://tse2.mm.bing.net/th/id/OIP.L5Pxn6Xl4MgaTUSUgNhoIAHaKX?w=900&h=1260&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Rice & Chicken" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Rice & Chicken</h3>
-                        <div class="menu-item-price">K65</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 480 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-                <div class="menu-item card" data-category="meals">
-    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Burgers" class="menu-item-img">
-    <div class="menu-item-content">
-        <h3 class="menu-item-title">Plain Beef Burger</h3>
-        <div class="menu-item-price">K60</div>
-        <div class="menu-item-info">
-            <small><i class="fas fa-fire"></i> 450 calories</small>
-            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
-        </div>
-        <button class="btn btn-sm btn-block">Add to Cart</button>
-    </div>
-</div>
-
-      <div class="menu-item card" data-category="meals">
-    <img src="https://tse2.mm.bing.net/th/id/OIP.meQWP-w1KTRTQBkIT-V25wHaE7?pid=ImgDet&w=192&h=128&c=7&o=7&rm=3" alt="Burgers" class="menu-item-img">
-    <div class="menu-item-content">
-        <h3 class="menu-item-title">Beef Burger & Chips</h3>
-        <div class="menu-item-price">K97</div>
-        <div class="menu-item-info">
-            <small><i class="fas fa-fire"></i> 450 calories</small>
-            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
-        </div>
-        <button class="btn btn-sm btn-block">Add to Cart</button>
-    </div>
-</div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://tse1.mm.bing.net/th/id/OIP.v3pcqlHmXGGTldtGGPlk3gHaFj?pid=ImgDet&w=192&h=144&c=7&o=7&rm=3" alt="Nshima & Chicken" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Nshima & Chicken</h3>
-                        <div class="menu-item-price">K60</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 450 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://alchetron.com/cdn/nshima-a1814c6b-6807-4cbd-aee9-6752cae5374-resize-750.png" alt="Nshima & Beefstew" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Nshima & Beefstew</h3>
-                        <div class="menu-item-price">K60</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 480 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="meals">
-                    <img src="https://th.bing.com/th/id/OSK.bb5f5b4ab4b83aeee634b441777a5746?w=200&h=126&c=7&rs=1&qlt=80&o=6&cdv=1&pid=16.1" alt="Chicken Wrap" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Chicken Wrap</h3>
-                        <div class="menu-item-price">K40</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 380 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-            <div class="menu-item card" data-category="meals">
-    <img src="https://th.bing.com/th/id/OSK.140b50c9f03a5475a073f34dfa67cf23?w=200&h=126&c=7&rs=1&qlt=80&o=6&cdv=1&pid=16.1" alt="Burgers" class="menu-item-img">
-    <div class="menu-item-content">
-        <h3 class="menu-item-title">Plain Chicken Burger</h3>
-        <div class="menu-item-price">K75</div>
-        <div class="menu-item-info">
-            <small><i class="fas fa-fire"></i> 450 calories</small>
-            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
-        </div>
-        <button class="btn btn-sm btn-block">Add to Cart</button>
-    </div>
-</div>
-
-          <div class="menu-item card" data-category="meals">
-    <img src="https://happiestveganonearth.com/wp-content/uploads/2022/09/20220905_002001.jpg?w=2048" alt="Burgers" class="menu-item-img">
-    <div class="menu-item-content">
-        <h3 class="menu-item-title">Chicken Burger & Chips</h3>
-        <div class="menu-item-price">K105</div>
-        <div class="menu-item-info">
-            <small><i class="fas fa-fire"></i> 450 calories</small>
-            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten, dairy</small>
-        </div>
-        <button class="btn btn-sm btn-block">Add to Cart</button>
-    </div>
-</div>            
-
-                <!-- Drinks -->
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://5.imimg.com/data5/SELLER/Default/2021/12/VC/BW/HO/51865166/500ml-fanta-cold-drink-1000x1000.jpg" alt="Fanta" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Fanta</h3>
-                        <div class="menu-item-price">K15</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 140 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://blackgoose.md/files/sprite05l.png" alt="Sprite" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Sprite</h3>
-                        <div class="menu-item-price">K15</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 140 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://www.sugarcaneglasgow.co.uk/wp-content/uploads/2024/02/coke.jpg" alt="Coke" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Coke</h3>
-                        <div class="menu-item-price">K15</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 140 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://th.bing.com/th?q=Fruiticana+Mixed+Berry&w=120&h=120&c=1&rs=1&qlt=70&o=7&cb=1&pid=InlineBlock&rm=3&mkt=en-WW&cc=ZM&setlang=en&adlt=moderate&t=1&mw=247" alt="Fruitcana" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Fruitcana</h3>
-                        <div class="menu-item-price">K12</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 120 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://th.bing.com/th/id/OIP.aiNrNiwXLNeLBmDnWr49BgHaJ4?w=136&h=182&c=7&r=0&o=7&pid=1.7&rm=3" alt="Water" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Water</h3>
-                        <div class="menu-item-price">K5</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 0 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://tse2.mm.bing.net/th/id/OIP.Dz2D96o7IqxDoKIkLhZglgAAAA?pid=ImgDet&w=192&h=284&c=7&o=7&rm=3" alt="Pepsi" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Pepsi</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 150 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://th.bing.com/th/id/OIP.OMAclaNU4RCTOb34xwj6jwHaNK?w=115&h=196&c=7&r=0&o=7&pid=1.7&rm=3" alt="Frooty" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Frooty</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 120 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://app.dealtio.com/uploads/all/l0AooQVNpypUT1iBTXl1kKrvrWhsppnqKTYzhjA3.jpg" alt="Hubbly Bubbly" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Hubbly Bubbly</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 100 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="drinks">
-                    <img src="https://tse3.mm.bing.net/th/id/OIP.nzzXRuYxuUu1BqbyOd6__QHaHa?pid=ImgDet&w=192&h=192&c=7&o=7&rm=3" alt="Mirinda" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Mirinda</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 140 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <!-- Extras -->
-                <div class="menu-item card" data-category="extras">
-                    <img src="https://th.bing.com/th/id/OIP.WxN2NEqqXoVQ_isq2B3j5QHaFP?w=277&h=187&c=7&r=0&o=7&pid=1.7&rm=3" alt="Chips" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Chips</h3>
-                        <div class="menu-item-price">K25</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 300 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="extras">
-                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Salads" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Salads</h3>
-                        <div class="menu-item-price">K5</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 50 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="extras">
-                    <img src="https://th.bing.com/th/id/OIP.TwCBegkW_XiQVpULn6Ti5AHaE8?w=236&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Sandwiches" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Sandwiches</h3>
-                        <div class="menu-item-price">K25</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 280 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <!-- Snacks -->
-                <div class="menu-item card" data-category="snacks">
-                    <img src="https://tse1.explicit.bing.net/th/id/OIP.JZjRiyvVuh38HoL_Dd1cnwHaGN?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Fritters" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Fritters</h3>
-                        <div class="menu-item-price">K5</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 120 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="snacks">
-                    <img src="https://th.bing.com/th/id/OIP.Jz-mS3xtznxh3J1T5Lyg3wHaHa?w=165&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Crisps" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Crisps</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 160 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="snacks">
-                    <img src="https://th.bing.com/th/id/OIP.C81-afSmUATPS_rny58w_AHaH8?w=163&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Papas" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Papas</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 150 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                
-
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.SRAolSgfhYYXN1ypno7adwHaE6?w=271&h=180&c=7&r=0&o=7&pid=1.7&rm=3" alt="Sandwiches" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Muffins</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 280 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <!-- New Snack Items -->
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.bHaPwotNGT8EawjwpOT9hgHaHi?w=181&h=185&c=7&r=0&o=7&pid=1.7&rm=3" alt="Crackers" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Crackers</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 100 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gluten</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-                
-
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.mspTsQIV1LP7nAM7rToiiQHaHa?w=215&h=215&c=7&r=0&o=7&pid=1.7&rm=3" alt="Popcorns" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Popcorns</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 120 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> May contain dairy</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <!-- Candy Items -->
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.XFg83LJA8_skQvfd5cgPSwHaJ5?w=140&h=187&c=7&r=0&o=7&pid=1.7&rm=3" alt="Lollipops" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Lollipops</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 50 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains sugar</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.I1hzSjKbSjUsCPaV8vX1vQHaI2?w=158&h=189&c=7&r=0&o=7&pid=1.7&rm=3" alt="Jelly Tots" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Jelly Tots</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 80 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gelatin</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://www.beacon.co.za/-/media/Project/Tiger/Beacon-Treats/Beacon/products/packs/New-Maynards-60g/Maynards_60g_FV_FruitJubes-PTWR4.png?h=563" alt="Jelly Tots" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Maynards</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 80 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains gelatin</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="weekly friday treats">
-                    <img src="https://th.bing.com/th/id/OIP.lhiBy6RSo3vRtP8M0WGBmAHaHa?w=186&h=186&c=7&r=0&o=7&pid=1.7&rm=3" alt="Smarties" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Smarties</h3>
-                        <div class="menu-item-price">Free</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 70 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> Contains milk</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <!-- Fruits -->
-                <div class="menu-item card" data-category="fruits">
-                    <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80" alt="Bananas" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Bananas</h3>
-                        <div class="menu-item-price">K5</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 105 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="fruits">
-                    <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" alt="Apples" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Apples</h3>
-                        <div class="menu-item-price">K10</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 95 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="menu-item card" data-category="fruits">
-                    <img src="https://images.unsplash.com/photo-1547514701-42782101795e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" alt="Oranges" class="menu-item-img">
-                    <div class="menu-item-content">
-                        <h3 class="menu-item-title">Oranges</h3>
-                        <div class="menu-item-price">K15</div>
-                        <div class="menu-item-info">
-                            <small><i class="fas fa-fire"></i> 62 calories</small>
-                            <small><i class="fas fa-exclamation-triangle"></i> No allergens</small>
-                        </div>
-                        <button class="btn btn-sm btn-block">Add to Cart</button>
-                    </div>
-                </div>
+                <!-- FRUITS -->
+                <div class="menu-item card" data-category="fruits"><img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=1480&q=80" alt="Bananas" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Bananas</h3><div class="menu-item-price">K5</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="fruits"><img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=1374&q=80" alt="Apples" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Apples</h3><div class="menu-item-price">K10</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
+                <div class="menu-item card" data-category="fruits"><img src="https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=1374&q=80" alt="Oranges" class="menu-item-img"><div class="menu-item-content"><h3 class="menu-item-title">Oranges</h3><div class="menu-item-price">K15</div><button class="btn btn-sm add-to-cart">Add to Cart</button></div></div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column">
-                    <h3>Literacy Tree School</h3>
-                    <p>Providing quality education and nutritious meals for children in Makeni Bonaventure Area, Lusaka, Zambia.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Quick Links</h3>
-                    <ul class="footer-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="menu.html">Menu</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Contact Info</h3>
-                    <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Makeni Bonaventure Area, Lusaka, Zambia</li>
-                        <li><i class="fas fa-phone" style="margin-right: 10px;"></i> +260 0974754810</li>
-                        <li><i class="fas fa-envelope" style="margin-right: 10px;"></i> info@literacytree.edu.zm</li>
-                    </ul>
-                </div>
+                <div class="footer-column"><h3>Literacy Tree School</h3><p>Providing quality education and nutritious meals.</p></div>
+                <div class="footer-column"><h3>Contact Info</h3><ul class="footer-links"><li><i class="fas fa-phone" style="margin-right: 10px;"></i> +260 0974754810</li></ul></div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2023 Literacy Tree School. All rights reserved.</p>
-            </div>
+            <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">&copy; 2023 Literacy Tree School. All rights reserved.</div>
         </div>
     </footer>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <span id="toast-message">Toast message</span>
-    </div>
+    <div class="toast" id="toast"><span id="toast-message">Toast message</span></div>
 
     <script>
-        // DOM Elements
+        let cart = [];
+        let selectedPaymentMethod = null;
+        let paymentPollingInterval = null;
+
+        const cartToggleBtn = document.getElementById('cart-toggle');
+        const cartBadge = document.getElementById('cart-badge');
+        const cartSidebar = document.getElementById('cart-sidebar');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const closeCartBtn = document.getElementById('close-cart');
+        const cartBody = document.getElementById('cart-body');
+        const cartTotalPrice = document.getElementById('cart-total-price');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const checkoutModal = document.getElementById('checkout-modal');
+        const closeCheckoutBtn = document.getElementById('close-checkout');
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const paymentForm = document.getElementById('payment-form');
+        const paymentPhone = document.getElementById('payment-phone');
+        const payName = document.getElementById('pay-name');
+        const payNowBtn = document.getElementById('pay-now-btn');
+        const ussdInstructions = document.getElementById('ussd-instructions');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); darkModeToggle.checked = true; }
+        darkModeToggle.addEventListener('change', (e) => { document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light'); localStorage.setItem('theme', e.target.checked ? 'dark' : 'light'); });
+        
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const mobileNav = document.getElementById('mobile-nav');
         const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
         const mobileNavClose = document.getElementById('mobile-nav-close');
-        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-        const categoryBtns = document.querySelectorAll('.category-btn');
-        const menuItems = document.querySelectorAll('.menu-item');
-        const menuSearch = document.getElementById('menu-search');
-        const addToCartBtns = document.querySelectorAll('.menu-item .btn');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
+        mobileMenuToggle.addEventListener('click', () => { mobileMenuToggle.classList.toggle('active'); mobileNav.classList.toggle('active'); mobileNavOverlay.classList.toggle('active'); document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : ''; });
+        const closeMobileMenu = () => { mobileMenuToggle.classList.remove('active'); mobileNav.classList.remove('active'); mobileNavOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+        mobileNavOverlay.addEventListener('click', closeMobileMenu);
+        mobileNavClose.addEventListener('click', closeMobileMenu);
 
-        // Mobile menu toggle
-        mobileMenuToggle.addEventListener('click', function () {
-            this.classList.toggle('active');
-            mobileNav.classList.toggle('active');
-            mobileNavOverlay.classList.toggle('active');
-            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const category = this.getAttribute('data-category');
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.style.display = (category === 'all' || item.getAttribute('data-category') === category) ? 'block' : 'none';
+                });
+            });
         });
-
-        // Close menu when clicking overlay
-        mobileNavOverlay.addEventListener('click', function () {
-            closeMobileMenu();
-        });
-
-               // Close menu when clicking links
-        mobileNavLinks.forEach(link => {
-            link.addEventListener('click', function () {
-                closeMobileMenu();
+        document.getElementById('menu-search').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.style.display = item.querySelector('.menu-item-title').textContent.toLowerCase().includes(searchTerm) ? 'block' : 'none';
             });
         });
 
-        // Close menu on escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
-                closeMobileMenu();
+        function updateCartUI() {
+            cartBody.innerHTML = '';
+            let total = 0;
+            if (cart.length === 0) {
+                cartBody.innerHTML = '<p>Your cart is empty.</p>';
+                checkoutBtn.disabled = true;
+                cartBadge.style.display = 'none';
+            } else {
+                checkoutBtn.disabled = false;
+                cartBadge.style.display = 'flex';
+                cartBadge.textContent = cart.length;
+                cart.forEach((item, index) => {
+                    total += item.price * item.quantity;
+                    const cartItemDiv = document.createElement('div');
+                    cartItemDiv.className = 'cart-item';
+                    cartItemDiv.innerHTML = `<div class="cart-item-details"><h4>${item.name}</h4><p>K${item.price} x ${item.quantity}</p></div><div style="display:flex; align-items:center; gap:15px;"><strong>K${item.price * item.quantity}</strong><button class="cart-item-remove" data-index="${index}"><i class="fas fa-trash"></i></button></div>`;
+                    cartBody.appendChild(cartItemDiv);
+                });
+                document.querySelectorAll('.cart-item-remove').forEach(btn => { btn.addEventListener('click', function() { cart.splice(this.getAttribute('data-index'), 1); updateCartUI(); }); });
             }
-        });
-
-        // Function to close mobile menu
-        function closeMobileMenu() {
-            mobileMenuToggle.classList.remove('active');
-            mobileNav.classList.remove('active');
-            mobileNavOverlay.classList.remove('active');
-            document.body.style.overflow = '';
+            cartTotalPrice.textContent = `K${total}`;
         }
 
-        // Category filtering
-        categoryBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                // Update active category button
-                categoryBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
-                const category = this.getAttribute('data-category');
-
-                // Filter menu items
-                menuItems.forEach(item => {
-                    if (category === 'all' || item.getAttribute('data-category') === category) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const menuItemContent = this.closest('.menu-item-content');
+                const name = menuItemContent.querySelector('.menu-item-title').textContent;
+                const priceText = menuItemContent.querySelector('.menu-item-price').textContent;
+                const price = parseInt(priceText.replace('K', '')) || 0;
+                const existingItem = cart.find(item => item.name === name);
+                if (existingItem) { existingItem.quantity++; } else { cart.push({ name, price, quantity: 1 }); }
+                updateCartUI();
+                showToast(`${name} added to cart!`, 'success');
             });
         });
 
-        // Search functionality
-        menuSearch.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
+        cartToggleBtn.addEventListener('click', () => { cartSidebar.classList.add('active'); cartOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; });
+        const closeCart = () => { cartSidebar.classList.remove('active'); cartOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+        closeCartBtn.addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', closeCart);
 
-            menuItems.forEach(item => {
-                const itemName = item.querySelector('.menu-item-title').textContent.toLowerCase();
-                
-                if (itemName.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
+        checkoutBtn.addEventListener('click', () => { closeCart(); setTimeout(() => { checkoutModal.classList.add('active'); document.body.style.overflow = 'hidden'; }, 300); });
+        closeCheckoutBtn.addEventListener('click', () => { checkoutModal.classList.remove('active'); document.body.style.overflow = ''; if(paymentPollingInterval) clearInterval(paymentPollingInterval); });
+
+        paymentOptions.forEach(opt => {
+            opt.addEventListener('click', function() {
+                paymentOptions.forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                selectedPaymentMethod = this.getAttribute('data-method');
+                paymentForm.style.display = 'block';
+                ussdInstructions.style.display = 'block';
+                paymentPhone.value = '';
+                paymentPhone.placeholder = selectedPaymentMethod === 'mtn' ? 'e.g. 096XXXXXXX' : 'e.g. 097XXXXXXX';
             });
+        });
 
-            // If search is empty, show all items
-            if (searchTerm === '') {
-                menuItems.forEach(item => {
-                    item.style.display = 'block';
+        paymentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const phone = paymentPhone.value;
+            const name = payName.value;
+
+            if (!selectedPaymentMethod) { showToast('Please select MTN or Airtel', 'error'); return; }
+            if (!name || !phone) { showToast('Please enter name and phone number', 'error'); return; }
+
+            payNowBtn.innerHTML = '<span class="spinner"></span> Initiating USSD Push...';
+            payNowBtn.disabled = true;
+
+            try {
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: cart, paymentMethod: selectedPaymentMethod, customerName: name, phoneNumber: phone }),
                 });
+
+                const data = await response.json();
+                if (!response.ok || data.error) throw new Error(data.error || 'Failed to initiate payment');
+
+                showToast('Check your phone for the payment prompt!', 'info');
+                payNowBtn.innerHTML = 'Waiting for PIN Entry on Phone...';
+                startPaymentPolling(data.orderNumber);
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showToast(error.message || 'Payment failed.', 'error');
+                payNowBtn.innerHTML = 'Pay Now';
+                payNowBtn.disabled = false;
             }
         });
 
-        // Add to cart buttons
-        addToCartBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                const itemName = this.closest('.menu-item-content').querySelector('.menu-item-title').textContent;
-                
-                // Show notification
-                showToast(`${itemName} added to cart!`);
-            });
-        });
+        function startPaymentPolling(orderNumber) {
+            if (paymentPollingInterval) clearInterval(paymentPollingInterval);
+            let attempts = 0;
+            
+            paymentPollingInterval = setInterval(async () => {
+                attempts++;
+                if (attempts > 40) {
+                    clearInterval(paymentPollingInterval);
+                    payNowBtn.innerHTML = 'Pay Now';
+                    payNowBtn.disabled = false;
+                    showToast('Payment verification timed out. Please try again.', 'error');
+                    return;
+                }
 
-        // Function to show toast notification
-        function showToast(message, type = 'success') {
-            toastMessage.textContent = message;
+                try {
+                    const res = await fetch(`/api/payment-status/${orderNumber}`);
+                    const statusData = await res.json();
 
-            // Remove existing classes
-            toast.classList.remove('toast-success', 'toast-error', 'toast-warning', 'toast-info');
-
-            // Add appropriate class based on type
-            toast.classList.add(`toast-${type}`);
-
-            // Show toast
-            toast.classList.add('show');
-
-            // Hide after 3 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
+                    if (statusData.paymentStatus === 'completed') {
+                        clearInterval(paymentPollingInterval);
+                        showToast('Payment Successful! Order confirmed.', 'success');
+                        cart = [];
+                        updateCartUI();
+                        checkoutModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                        payNowBtn.innerHTML = 'Pay Now';
+                        payNowBtn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
             }, 3000);
         }
+
+        function showToast(message, type = 'success') {
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            toast.classList.add(`toast-${type}`, 'show');
+            setTimeout(() => { toast.classList.remove('show'); }, 5000);
+        }
+
+        updateCartUI();
     </script>
 </body>
 </html>
