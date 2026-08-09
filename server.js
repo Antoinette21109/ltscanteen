@@ -17,10 +17,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
 
 // ============ MIDDLEWARE ============
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5500','https://ltscanteen.vercel.app/', 'https://ltscanteen-81tsl2fb2-antoinette21109s-projects.vercel.app', process.env.FRONTEND_URL],
+  origin: ['http://localhost:3000', 'http://localhost:5500', 'https://ltscanteen.vercel.app', 'https://ltscanteen-81tsl2fb2-antoinette21109s-projects.vercel.app', process.env.FRONTEND_URL],
   credentials: true
 }));
 app.use(express.json());
@@ -80,6 +81,31 @@ db.exec(`
 const hashedPassword = bcrypt.hashSync('Admin123!', 10);
 const adminStmt = db.prepare(`INSERT OR IGNORE INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)`);
 adminStmt.run('admin@literacytree.com', hashedPassword, 'School Administrator', '+260974754810', 'admin');
+
+// ============ AUTHENTICATION MIDDLEWARE ============
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+  
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token.' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required.' });
+  }
+  next();
+};
 
 // ============ HELPER FUNCTIONS ============
 const generateOrderNumber = () => {
@@ -225,13 +251,253 @@ function simulatePaymentCallback(provider, transactionId, orderId, orderNumber, 
   updateOrder.run(orderId);
 }
 
+// ============ AUTHENTICATION ROUTES ============
+
+// Register
+app.post('/api/register', [
+  body('username').isEmail().withMessage('Please enter a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('full_name').optional().isString(),
+  body('phone').optional().isString()
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, password, full_name, phone } = req.body;
+
+  try {
+    // Check if user already exists
+    const checkUser = db.prepare('SELECT id FROM users WHERE username = ?');
+    const existingUser = checkUser.get(username);
+    
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists with this email' });
+    }
+
+    // Hash password
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
+    // Insert new user
+    const insertUser = db.prepare(
+      'INSERT INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)'
+    );
+    const result = insertUser.run(username, hashedPassword, full_name || '', phone || '', 'customer');
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { id: result.lastInsertRowid, username, role: 'customer' },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: result.lastInsertRowid,
+        username,
+        full_name: full_name || '',
+        phone: phone || '',
+        role: 'customer'
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// Login
+app.post('/api/login', [
+  body('username').isEmail().withMessage('Please enter a valid email'),
+  body('password').notEmpty().withMessage('Password is required')
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, password } = req.body;
+
+  try {
+    // Find user
+    const getUser = db.prepare('SELECT * FROM users WHERE username = ?');
+    const user = getUser.get(username);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Check password
+    const isValidPassword = bcrypt.compareSync(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Get current user
+app.get('/api/me', authenticateToken, (req, res) => {
+  try {
+    const getUser = db.prepare('SELECT id, username, full_name, phone, role, created_at FROM users WHERE id = ?');
+    const user = getUser.get(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// Update user profile
+app.put('/api/profile', authenticateToken, [
+  body('full_name').optional().isString(),
+  body('phone').optional().isString(),
+  body('currentPassword').optional().isString(),
+  body('newPassword').optional().isLength({ min: 6 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { full_name, phone, currentPassword, newPassword } = req.body;
+  const userId = req.user.id;
+
+  try {
+    let updates = [];
+    let params = [];
+
+    if (full_name !== undefined) {
+      updates.push('full_name = ?');
+      params.push(full_name);
+    }
+
+    if (phone !== undefined) {
+      updates.push('phone = ?');
+      params.push(phone);
+    }
+
+    if (newPassword) {
+      // Verify current password
+      const getUser = db.prepare('SELECT password FROM users WHERE id = ?');
+      const user = getUser.get(userId);
+      
+      if (!bcrypt.compareSync(currentPassword, user.password)) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+      
+      const hashedPassword = bcrypt.hashSync(newPassword, 10);
+      updates.push('password = ?');
+      params.push(hashedPassword);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    params.push(userId);
+    const updateUser = db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`);
+    updateUser.run(...params);
+
+    // Get updated user
+    const getUser = db.prepare('SELECT id, username, full_name, phone, role FROM users WHERE id = ?');
+    const updatedUser = getUser.get(userId);
+
+    res.json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 // ============ API ROUTES ============
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.post('/create-checkout-session', async (req, res) => {
+// Protected order creation - requires authentication
+app.post('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const { items, paymentMethod, phoneNumber, customerName } = req.body;
+    const userId = req.user.id;
+    
+    if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
+    if (!paymentMethod || !['mtn', 'airtel'].includes(paymentMethod)) return res.status(400).json({ error: 'Invalid payment method' });
+    if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
+    
+    const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
+    if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
+    
+    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderNumber = generateOrderNumber();
+    
+    const insertOrder = db.prepare(`INSERT INTO orders (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    const info = insertOrder.run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const orderId = info.lastInsertRowid;
+    
+    try {
+      let paymentResult;
+      if (paymentMethod === 'mtn') {
+        paymentResult = await initiateMTNPayment(orderNumber, total, phoneNumber, orderId);
+      } else {
+        paymentResult = await initiateAirtelPayment(orderNumber, total, phoneNumber, orderId);
+      }
+      
+      res.json({
+        success: true,
+        orderNumber: orderNumber,
+        transactionId: paymentResult.transactionId,
+        paymentStatus: paymentResult.status,
+        message: paymentResult.message
+      });
+      
+    } catch (paymentError) {
+      console.error('Payment initiation error:', paymentError);
+      res.status(500).json({ error: 'Payment initiation failed', details: paymentError.message });
+    }
+    
+  } catch (error) {
+    console.error('Order creation error:', error);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+// Guest checkout (without authentication)
+app.post('/api/guest-checkout', async (req, res) => {
   try {
     const { items, paymentMethod, customerName, phoneNumber } = req.body;
     
@@ -294,6 +560,18 @@ app.get('/api/payment-status/:orderNumber', async (req, res) => {
   });
 });
 
+// Get user's orders
+app.get('/api/my-orders', authenticateToken, (req, res) => {
+  try {
+    const getOrders = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`);
+    const orders = getOrders.all(req.user.id);
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 app.post('/api/payments/mtn-callback', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const callbackData = JSON.parse(req.body.toString());
@@ -330,10 +608,40 @@ app.post('/api/payments/airtel-callback', express.json(), async (req, res) => {
   }
 });
 
-app.get('/api/admin/orders', async (req, res) => {
+// Admin routes
+app.get('/api/admin/orders', authenticateToken, isAdmin, (req, res) => {
   const getOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC`);
   const orders = getOrders.all();
   res.json(orders);
+});
+
+app.get('/api/admin/users', authenticateToken, isAdmin, (req, res) => {
+  const getUsers = db.prepare(`SELECT id, username, full_name, phone, role, created_at FROM users ORDER BY created_at DESC`);
+  const users = getUsers.all();
+  res.json(users);
+});
+
+app.put('/api/admin/orders/:orderId/status', authenticateToken, isAdmin, (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+  
+  if (!['pending', 'confirmed', 'completed', 'cancelled'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+  
+  try {
+    const updateOrder = db.prepare(`UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
+    const result = updateOrder.run(status, orderId);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json({ message: 'Order status updated successfully' });
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ error: 'Failed to update order' });
+  }
 });
 
 // ============ SERVER START ============
@@ -346,6 +654,7 @@ app.listen(PORT, () => {
 ║   📱 MTN Mobile Money: ${process.env.MTN_API_URL ? '✅ Live API' : '⚠️ Sandbox Mode'}    ║
 ║   💛 Airtel Money: ${process.env.AIRTEL_API_URL ? '✅ Live API' : '⚠️ Sandbox Mode'}      ║
 ║   💳 Payment methods: MTN, Airtel                     ║
+║   🔐 Authentication: JWT enabled                     ║
 ╚═══════════════════════════════════════════════════════╝
   `);
 });
