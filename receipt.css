@@ -1,0 +1,356 @@
+/* ==========================================
+   POS RECEIPT
+   ========================================== */
+
+.receipt {
+    width: 80mm;
+    max-width: 80mm;
+    margin: 0 auto;
+    padding: 15px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+
+/* ==========================================
+   LOGO
+   ========================================== */
+
+.receipt-logo {
+    width: 55px;
+    height: 55px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 6px;
+    object-fit: contain;
+}
+
+.receipt-header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+}
+
+.receipt-title {
+    font-size: 15px;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.receipt-location {
+    font-size: 10px;
+    margin: 2px 0 0;
+}
+
+
+/* ==========================================
+   ORDER INFORMATION
+   ========================================== */
+
+.receipt-info {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 10px;
+}
+
+.receipt-row:last-child {
+    margin-bottom: 0;
+}
+
+.receipt-label {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.receipt-value {
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+
+/* ==========================================
+   ITEMS
+   ========================================== */
+
+.receipt-items {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+}
+
+.receipt-items-title {
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.receipt-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 10px;
+}
+
+.receipt-item-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.receipt-qty {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.receipt-item-price {
+    color: var(--text);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+
+/* ==========================================
+   TOTAL
+   ========================================== */
+
+.receipt-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.receipt-total-label {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.receipt-total-amount {
+    color: var(--primary);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+.receipt-footer {
+    text-align: center;
+    padding: 6px 0;
+    border-top: 1px dashed var(--border);
+}
+
+.receipt-footer p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+
+/* ==========================================
+   PRINT VERSION — A4
+   ========================================== */
+
+@media print {
+
+    @page {
+        size: A4 portrait;
+        margin: 8mm;
+    }
+
+    html,
+    body {
+        width: 100%;
+        height: auto;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    /*
+       Hide everything in the application
+       except the receipt.
+    */
+    body * {
+        visibility: hidden;
+    }
+
+    .receipt,
+    .receipt * {
+        visibility: visible;
+    }
+
+    /*
+       Keep receipt POS-sized,
+       centered on A4.
+    */
+    .receipt {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+
+        width: 80mm !important;
+        max-width: 80mm !important;
+
+        margin: 0 !important;
+        padding: 4mm !important;
+
+        background: #fff !important;
+
+        box-shadow: none !important;
+        border: none !important;
+
+        font-family: Arial, sans-serif !important;
+
+        /*
+           Important for keeping it together
+        */
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+
+    /* ======================================
+       SMALL PRINT LOGO
+       ====================================== */
+
+    .receipt-logo {
+        width: 32px !important;
+        height: 32px !important;
+
+        margin-bottom: 2px !important;
+    }
+
+
+    /* ======================================
+       COMPACT HEADER
+       ====================================== */
+
+    .receipt-header {
+        margin-bottom: 5px !important;
+        padding-bottom: 4px !important;
+        border-bottom: 1px dashed #777 !important;
+    }
+
+    .receipt-title {
+        font-size: 11px !important;
+        line-height: 1.1 !important;
+        margin: 0 !important;
+    }
+
+    .receipt-location {
+        font-size: 8px !important;
+        line-height: 1 !important;
+        margin: 1px 0 0 !important;
+    }
+
+
+    /* ======================================
+       COMPACT ORDER INFO
+       ====================================== */
+
+    .receipt-info {
+        padding: 5px 0 !important;
+        border-bottom: 1px solid #aaa !important;
+    }
+
+    .receipt-row {
+        font-size: 8px !important;
+        margin-bottom: 2px !important;
+        line-height: 1.1 !important;
+    }
+
+
+    /* ======================================
+       COMPACT ITEMS
+       ====================================== */
+
+    .receipt-items {
+        padding: 5px 0 !important;
+        border-bottom: 1px dashed #777 !important;
+    }
+
+    .receipt-items-title {
+        font-size: 8px !important;
+        margin-bottom: 3px !important;
+    }
+
+    .receipt-item {
+        font-size: 8px !important;
+        padding: 2px 0 !important;
+        line-height: 1.1 !important;
+    }
+
+
+    /* ======================================
+       COMPACT TOTAL
+       ====================================== */
+
+    .receipt-total {
+        padding: 5px 0 !important;
+    }
+
+    .receipt-total-label {
+        font-size: 11px !important;
+    }
+
+    .receipt-total-amount {
+        font-size: 14px !important;
+    }
+
+
+    /* ======================================
+       FOOTER
+       ====================================== */
+
+    .receipt-footer {
+        padding: 4px 0 !important;
+    }
+
+    .receipt-footer p {
+        font-size: 7px !important;
+    }
+
+
+    /* ======================================
+       HIDE PRINT BUTTON
+       ====================================== */
+
+    .no-print,
+    .receipt-print-button,
+    button {
+        display: none !important;
+    }
+
+
+    /* ======================================
+       PREVENT BREAKING
+       ====================================== */
+
+    .receipt-header,
+    .receipt-info,
+    .receipt-items,
+    .receipt-item,
+    .receipt-total,
+    .receipt-footer {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}
