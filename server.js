@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 // ============ MIDDLEWARE ============
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5500', 'https://yourdomain.com', process.env.FRONTEND_URL],
+  origin: ['http://localhost:3000', 'http://localhost:5500','https://ltscanteen.vercel.app/', 'https://ltscanteen-81tsl2fb2-antoinette21109s-projects.vercel.app', process.env.FRONTEND_URL],
   credentials: true
 }));
 app.use(express.json());
