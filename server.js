@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import sqlite3 from 'sqlite3';
+import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
@@ -20,19 +20,22 @@ const PORT = process.env.PORT || 3000;
 
 // ============ MIDDLEWARE ============
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5500', 'https://yourdomain.com'],
+  origin: ['http://localhost:3000', 'http://localhost:5500', 'https://yourdomain.com', process.env.FRONTEND_URL],
   credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('.')); // Serve static files
+app.use(express.static('.'));
 
 // ============ DATABASE SETUP ============
-const db = new sqlite3.Database('./canteen.db');
+const db = new Database('./canteen.db');
 
-db.serialize(() => {
-  // Users table
-  db.run(`CREATE TABLE IF NOT EXISTS users (
+// Enable foreign keys
+db.pragma('foreign_keys = ON');
+
+// Create tables
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
@@ -40,10 +43,9 @@ db.serialize(() => {
     phone TEXT,
     role TEXT DEFAULT 'customer',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+  );
   
-  // Orders table
-  db.run(`CREATE TABLE IF NOT EXISTS orders (
+  CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_number TEXT UNIQUE NOT NULL,
     user_id INTEGER,
@@ -58,10 +60,9 @@ db.serialize(() => {
     status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+  );
   
-  // Payments table
-  db.run(`CREATE TABLE IF NOT EXISTS payments (
+  CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER,
     transaction_id TEXT UNIQUE,
@@ -72,15 +73,13 @@ db.serialize(() => {
     reference TEXT,
     callback_data TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-  
-  // Create demo admin user
-  const hashedPassword = bcrypt.hashSync('Admin123!', 10);
-  db.run(`INSERT OR IGNORE INTO users (username, password, full_name, phone, role) 
-          VALUES (?, ?, ?, ?, ?)`,
-    ['admin@literacytree.com', hashedPassword, 'School Administrator', '+260974754810', 'admin']
   );
-});
+`);
+
+// Create demo admin user
+const hashedPassword = bcrypt.hashSync('Admin123!', 10);
+const adminStmt = db.prepare(`INSERT OR IGNORE INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)`);
+adminStmt.run('admin@literacytree.com', hashedPassword, 'School Administrator', '+260974754810', 'admin');
 
 // ============ HELPER FUNCTIONS ============
 const generateOrderNumber = () => {
@@ -112,9 +111,9 @@ async function initiateMTNPayment(orderNumber, amount, phoneNumber, orderId) {
   const transactionId = crypto.randomUUID();
   
   // Store transaction record
-  db.run(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
-          VALUES (?, ?, ?, ?, ?, 'pending')`,
-    [orderId, transactionId, 'mtn', amount, phoneNumber]);
+  const insertPayment = db.prepare(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
+                                   VALUES (?, ?, ?, ?, ?, 'pending')`);
+  insertPayment.run(orderId, transactionId, 'mtn', amount, phoneNumber);
 
   // PRODUCTION MODE: If MTN API URL exists in .env, hit the real API
   if (process.env.MTN_API_URL && process.env.MTN_SUBSCRIPTION_KEY) {
@@ -170,9 +169,9 @@ async function initiateAirtelPayment(orderNumber, amount, phoneNumber, orderId) 
   const transactionId = `AIR-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   
   // Store transaction record
-  db.run(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
-          VALUES (?, ?, ?, ?, ?, 'pending')`,
-    [orderId, transactionId, 'airtel', amount, phoneNumber]);
+  const insertPayment = db.prepare(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
+                                   VALUES (?, ?, ?, ?, ?, 'pending')`);
+  insertPayment.run(orderId, transactionId, 'airtel', amount, phoneNumber);
 
   // PRODUCTION MODE: If Airtel API URL exists in .env, hit the real API
   if (process.env.AIRTEL_API_URL && process.env.AIRTEL_CLIENT_ID) {
@@ -218,11 +217,13 @@ async function initiateAirtelPayment(orderNumber, amount, phoneNumber, orderId) 
 
 function simulatePaymentCallback(provider, transactionId, orderId, orderNumber, amount) {
   console.log(`[SIMULATION] ${provider.toUpperCase()} payment successful for order ${orderNumber}`);
-  db.run(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`,
-    [JSON.stringify({ status: 'success', transactionId, amount, provider }), transactionId]);
-  db.run(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [orderId]);
+  
+  const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
+  updatePayment.run(JSON.stringify({ status: 'success', transactionId, amount, provider }), transactionId);
+  
+  const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
+  updateOrder.run(orderId);
 }
-
 
 // ============ API ROUTES ============
 
@@ -244,39 +245,32 @@ app.post('/create-checkout-session', async (req, res) => {
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const orderNumber = generateOrderNumber();
     
-    db.run(`INSERT INTO orders (order_number, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending'],
-      async function(err) {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).json({ error: 'Failed to create order' });
-        }
-        
-        const orderId = this.lastID;
-        
-        try {
-          let paymentResult;
-          if (paymentMethod === 'mtn') {
-            paymentResult = await initiateMTNPayment(orderNumber, total, phoneNumber, orderId);
-          } else {
-            paymentResult = await initiateAirtelPayment(orderNumber, total, phoneNumber, orderId);
-          }
-          
-          res.json({
-            success: true,
-            orderNumber: orderNumber,
-            transactionId: paymentResult.transactionId,
-            paymentStatus: paymentResult.status,
-            message: paymentResult.message
-          });
-          
-        } catch (paymentError) {
-          console.error('Payment initiation error:', paymentError);
-          res.status(500).json({ error: 'Payment initiation failed', details: paymentError.message });
-        }
+    const insertOrder = db.prepare(`INSERT INTO orders (order_number, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    const info = insertOrder.run(orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const orderId = info.lastInsertRowid;
+    
+    try {
+      let paymentResult;
+      if (paymentMethod === 'mtn') {
+        paymentResult = await initiateMTNPayment(orderNumber, total, phoneNumber, orderId);
+      } else {
+        paymentResult = await initiateAirtelPayment(orderNumber, total, phoneNumber, orderId);
+      }
+      
+      res.json({
+        success: true,
+        orderNumber: orderNumber,
+        transactionId: paymentResult.transactionId,
+        paymentStatus: paymentResult.status,
+        message: paymentResult.message
       });
       
+    } catch (paymentError) {
+      console.error('Payment initiation error:', paymentError);
+      res.status(500).json({ error: 'Payment initiation failed', details: paymentError.message });
+    }
+    
   } catch (error) {
     console.error('Checkout error:', error);
     res.status(500).json({ error: 'Failed to process checkout' });
@@ -285,19 +279,19 @@ app.post('/create-checkout-session', async (req, res) => {
 
 app.get('/api/payment-status/:orderNumber', async (req, res) => {
   const { orderNumber } = req.params;
-  db.get(`SELECT o.*, p.status as payment_status, p.transaction_id 
-          FROM orders o LEFT JOIN payments p ON o.id = p.order_id 
-          WHERE o.order_number = ?`, 
-    [orderNumber], 
-    (err, order) => {
-      if (err || !order) return res.status(404).json({ error: 'Order not found' });
-      res.json({
-        orderNumber: order.order_number,
-        totalAmount: order.total_amount,
-        paymentStatus: order.payment_status,
-        orderStatus: order.status
-      });
-    });
+  const getOrder = db.prepare(`SELECT o.*, p.status as payment_status, p.transaction_id 
+                              FROM orders o LEFT JOIN payments p ON o.id = p.order_id 
+                              WHERE o.order_number = ?`);
+  const order = getOrder.get(orderNumber);
+  
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  
+  res.json({
+    orderNumber: order.order_number,
+    totalAmount: order.total_amount,
+    paymentStatus: order.payment_status,
+    orderStatus: order.status
+  });
 });
 
 app.post('/api/payments/mtn-callback', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -305,8 +299,12 @@ app.post('/api/payments/mtn-callback', express.raw({ type: 'application/json' })
     const callbackData = JSON.parse(req.body.toString());
     const transactionId = callbackData.referenceId;
     if (callbackData.status === 'SUCCESSFUL') {
-      db.run(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`, [JSON.stringify(callbackData), transactionId]);
-      db.run(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`, [transactionId]);
+      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
+      updatePayment.run(JSON.stringify(callbackData), transactionId);
+      
+      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
+                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`);
+      updateOrder.run(transactionId);
     }
     res.json({ status: 'received' });
   } catch (error) {
@@ -319,8 +317,12 @@ app.post('/api/payments/airtel-callback', express.json(), async (req, res) => {
     const callbackData = req.body;
     const transactionId = callbackData.transaction?.id;
     if (callbackData.transaction?.status === 'SUCCESS') {
-      db.run(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`, [JSON.stringify(callbackData), transactionId]);
-      db.run(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`, [transactionId]);
+      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
+      updatePayment.run(JSON.stringify(callbackData), transactionId);
+      
+      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
+                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`);
+      updateOrder.run(transactionId);
     }
     res.json({ status: 'received' });
   } catch (error) {
@@ -329,9 +331,9 @@ app.post('/api/payments/airtel-callback', express.json(), async (req, res) => {
 });
 
 app.get('/api/admin/orders', async (req, res) => {
-  db.all(`SELECT * FROM orders ORDER BY created_at DESC`, [], (err, orders) => {
-    res.json(orders);
-  });
+  const getOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC`);
+  const orders = getOrders.all();
+  res.json(orders);
 });
 
 // ============ SERVER START ============
