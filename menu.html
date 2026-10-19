@@ -15,7 +15,6 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1); --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
             --radius: 8px; --transition: all 0.3s ease; --container-max-width: 1200px;
             --card-bg: #ffffff; --border-color: #ddd; --input-bg: #ffffff;
-            --mtn-color: #FFC300; --airtel-color: #ED1C24;
         }
         [data-theme="dark"] {
             --primary: #4caf50; --primary-dark: #2e7d32; --primary-light: #81c784; --secondary: #ffb74d;
@@ -83,8 +82,6 @@
         .payment-option { border: 2px solid var(--border-color); border-radius: var(--radius); padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); }
         .payment-option:hover { border-color: var(--primary); }
         .payment-option.active { border-color: var(--primary); background-color: rgba(46, 125, 50, 0.1); }
-        .payment-option.mtn.active { border-color: var(--mtn-color); background-color: rgba(255, 195, 0, 0.1); }
-        .payment-option.airtel.active { border-color: var(--airtel-color); background-color: rgba(237, 28, 36, 0.1); }
         .payment-logo { font-size: 24px; font-weight: 800; margin-bottom: 5px; }
         .ussd-instructions { background-color: var(--background); padding: 15px; border-radius: var(--radius); margin-bottom: 20px; font-size: 14px; border-left: 4px solid var(--accent); display: none; }
 
@@ -236,20 +233,17 @@
 
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Mobile Money Checkout</h3><button class="modal-close" id="close-checkout"><i class="fas fa-times"></i></button></div>
+            <div class="modal-header"><h3>ZynlePay Checkout</h3><button class="modal-close" id="close-checkout"><i class="fas fa-times"></i></button></div>
             <div class="payment-options">
-                <div class="payment-option mtn" data-method="mtn"><div class="payment-logo" style="color: var(--mtn-color);">MTN</div><small>Mobile Money</small></div>
-                <div class="payment-option airtel" data-method="airtel"><div class="payment-logo" style="color: var(--airtel-color);">Airtel</div><small>Money</small></div>
+                <div class="payment-option" data-method="zynle"><div class="payment-logo">ZynlePay</div><small>Secure payment checkout</small></div>
             </div>
             <div class="ussd-instructions" id="ussd-instructions">
-                <strong><i class="fas fa-info-circle"></i> How it works:</strong><br>
-                1. Enter your details below.<br>
-                2. Click "Pay Now" to trigger the USSD push.<br>
-                3. Check your phone screen and enter your PIN to approve.
+                <strong><i class="fas fa-info-circle"></i> Payment:</strong><br>
+                Continue to ZynlePay's secure checkout to complete your payment.
             </div>
-            <form id="payment-form" style="display: none;">
+            <form id="payment-form">
                 <div class="form-group"><label class="form-label">Customer Name</label><input type="text" id="pay-name" class="form-control" placeholder="Enter parent/guardian name" required></div>
-                <div class="form-group"><label class="form-label" id="payment-label">Mobile Money Number</label><input type="tel" id="payment-phone" class="form-control" placeholder="e.g. 096XXXXXXX" required></div>
+                <div class="form-group"><label class="form-label" id="payment-label">Contact Phone Number</label><input type="tel" id="payment-phone" class="form-control" placeholder="e.g. 097XXXXXXX" required></div>
                 <button type="submit" class="btn btn-block" id="pay-now-btn">Pay Now</button>
             </form>
         </div>
@@ -370,7 +364,6 @@
     <script>
         let cart = [];
         let selectedPaymentMethod = null;
-        let paymentPollingInterval = null;
         let currentUser = JSON.parse(localStorage.getItem('canteenUser')) || null;
         let pendingAction = null; // Tracks what user tried to do before logging in
 
@@ -562,7 +555,7 @@
             setTimeout(() => { checkoutModal.classList.add('active'); document.body.style.overflow = 'hidden'; }, 300);
         });
         
-        closeCheckoutBtn.addEventListener('click', () => { checkoutModal.classList.remove('active'); document.body.style.overflow = ''; if(paymentPollingInterval) clearInterval(paymentPollingInterval); });
+        closeCheckoutBtn.addEventListener('click', () => { checkoutModal.classList.remove('active'); document.body.style.overflow = ''; });
 
         paymentOptions.forEach(opt => {
             opt.addEventListener('click', function() {
@@ -572,34 +565,38 @@
                 paymentForm.style.display = 'block';
                 ussdInstructions.style.display = 'block';
                 paymentPhone.value = '';
-                paymentPhone.placeholder = selectedPaymentMethod === 'mtn' ? 'e.g. 096XXXXXXX' : 'e.g. 097XXXXXXX';
+                paymentPhone.placeholder = 'e.g. 096XXXXXXX';
             });
         });
+
+        selectedPaymentMethod = 'zynle';
+        const zynleOption = document.querySelector('[data-method="zynle"]');
+        if (zynleOption) {
+            zynleOption.classList.add('active');
+        }
 
         paymentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const phone = paymentPhone.value;
             const name = payName.value;
 
-            if (!selectedPaymentMethod) { showToast('Please select MTN or Airtel', 'error'); return; }
+            if (!selectedPaymentMethod) { showToast('Please select ZynlePay', 'error'); return; }
             if (!name || !phone) { showToast('Please enter name and phone number', 'error'); return; }
 
-            payNowBtn.innerHTML = '<span class="spinner"></span> Initiating USSD Push...';
+            payNowBtn.innerHTML = '<span class="spinner"></span> Connecting to ZynlePay...';
             payNowBtn.disabled = true;
 
             try {
-                const response = await fetch('/create-checkout-session', {
+                const response = await fetch('/api/guest-checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: cart, paymentMethod: selectedPaymentMethod, customerName: name, phoneNumber: phone, user: currentUser }),
+                    body: JSON.stringify({ items: cart, paymentMethod: 'zynle', customerName: name, phoneNumber: phone }),
                 });
 
                 const data = await response.json();
                 if (!response.ok || data.error) throw new Error(data.error || 'Failed to initiate payment');
-
-                showToast('Check your phone for the payment prompt!', 'info');
-                payNowBtn.innerHTML = 'Waiting for PIN Entry on Phone...';
-                startPaymentPolling(data.orderNumber);
+                if (!data.checkoutUrl) throw new Error('ZynlePay did not return a checkout URL');
+                window.location.assign(data.checkoutUrl);
 
             } catch (error) {
                 console.error('Payment error:', error);
@@ -608,40 +605,6 @@
                 payNowBtn.disabled = false;
             }
         });
-
-        function startPaymentPolling(orderNumber) {
-            if (paymentPollingInterval) clearInterval(paymentPollingInterval);
-            let attempts = 0;
-            
-            paymentPollingInterval = setInterval(async () => {
-                attempts++;
-                if (attempts > 40) {
-                    clearInterval(paymentPollingInterval);
-                    payNowBtn.innerHTML = 'Pay Now';
-                    payNowBtn.disabled = false;
-                    showToast('Payment verification timed out. Please try again.', 'error');
-                    return;
-                }
-
-                try {
-                    const res = await fetch(`/api/payment-status/${orderNumber}`);
-                    const statusData = await res.json();
-
-                    if (statusData.paymentStatus === 'completed') {
-                        clearInterval(paymentPollingInterval);
-                        showToast('Payment Successful! Order confirmed.', 'success');
-                        cart = [];
-                        updateCartUI();
-                        checkoutModal.classList.remove('active');
-                        document.body.style.overflow = '';
-                        payNowBtn.innerHTML = 'Pay Now';
-                        payNowBtn.disabled = false;
-                    }
-                } catch (err) {
-                    console.error('Polling error:', err);
-                }
-            }, 3000);
-        }
 
         function showToast(message, type = 'success') {
             toastMessage.textContent = message;

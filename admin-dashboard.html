@@ -694,7 +694,7 @@
                     <td>${order.customer_name}</td>
                     <td>${order.customer_phone}</td>
                     <td>K${order.total_amount}</td>
-                    <td><span class="status-badge ${order.payment_method === 'mtn' ? 'status-completed' : 'status-pending'}">${order.payment_method.toUpperCase()}</span></td>
+                    <td><span class="status-badge ${order.payment_method === 'zynle' ? 'status-completed' : 'status-pending'}">${order.payment_method.toUpperCase()}</span></td>
                     <td><span class="status-badge ${order.payment_status === 'completed' ? 'status-completed' : 'status-pending'}">${order.payment_status}</span></td>
                     <td>${new Date(order.created_at).toLocaleString()}</td>
                     <td class="action-buttons">

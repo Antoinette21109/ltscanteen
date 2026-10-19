@@ -120,135 +120,91 @@ const generateOrderNumber = () => {
   return `LTS-${timestamp}-${random}`;
 };
 
-const formatPhoneForAPI = (phone) => {
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '260' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('260')) {
-    cleaned = '260' + cleaned;
-  }
-  return cleaned;
-};
-
-// ============ PAYMENT INTEGRATIONS ============
-
-async function initiateMTNPayment(orderNumber, amount, phoneNumber, orderId) {
-  const formattedPhone = formatPhoneForAPI(phoneNumber);
+async function initiateZynlePayment(orderNumber, amount, phoneNumber, orderId) {
+  const formattedPhone = phoneNumber.replace(/\D/g, '');
   const transactionId = crypto.randomUUID();
-  
-  // Store transaction record
+
   const insertPayment = db.prepare(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
                                    VALUES (?, ?, ?, ?, ?, 'pending')`);
-  insertPayment.run(orderId, transactionId, 'mtn', amount, phoneNumber);
+  insertPayment.run(orderId, transactionId, 'zynle', amount, phoneNumber);
 
-  // PRODUCTION MODE: If MTN API URL exists in .env, hit the real API
-  if (process.env.MTN_API_URL && process.env.MTN_SUBSCRIPTION_KEY) {
-    try {
-      const auth = Buffer.from(`${process.env.MTN_API_USER}:${process.env.MTN_API_KEY}`).toString('base64');
-      const tokenResponse = await axios.post(
-        `${process.env.MTN_API_URL}/collection/token/`,
-        {},
-        {
+  const zynleUrl = process.env.ZYNLE_API_URL;
+  const zynleKey = process.env.ZYNLE_API_KEY;
+
+  if (zynleUrl && zynleKey) {
+    const baseUrl = zynleUrl.replace(/\/$/, '');
+    const callbackUrl = process.env.ZYNLE_CALLBACK_URL || `${process.env.PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments/zynle-callback`;
+    const payload = {
+      merchantId: process.env.ZYNLE_MERCHANT_ID,
+      merchant_id: process.env.ZYNLE_MERCHANT_ID,
+      amount: Number(amount).toFixed(2),
+      currency: process.env.CURRENCY || 'ZMW',
+      orderId: orderNumber,
+      order_id: orderNumber,
+      externalId: orderNumber,
+      external_id: orderNumber,
+      phoneNumber: formattedPhone,
+      customerPhone: formattedPhone,
+      callbackUrl,
+      callback_url: callbackUrl,
+      metadata: { orderId, orderNumber, transactionId, provider: 'zynle' }
+    };
+
+    const endpointCandidates = [
+      `${baseUrl}/payments/initiate`,
+      `${baseUrl}/api/payments/initiate`,
+      `${baseUrl}/payment/initiate`,
+      `${baseUrl}/initiate-payment`
+    ];
+
+    let lastError = null;
+    for (const endpoint of endpointCandidates) {
+      try {
+        const response = await axios.post(endpoint, payload, {
           headers: {
-            'Authorization': `Basic ${auth}`,
-            'Ocp-Apim-Subscription-Key': process.env.MTN_SUBSCRIPTION_KEY
-          }
-        }
-      );
-      const bearerToken = tokenResponse.data.access_token;
+            Authorization: `Bearer ${zynleKey}`,
+            'Content-Type': 'application/json',
+            'X-API-Key': zynleKey
+          },
+          timeout: 20000
+        });
 
-      await axios.post(`${process.env.MTN_API_URL}/collection/v1_0/requesttopay`, {
-        amount: amount.toString(),
-        currency: 'ZMW',
-        externalId: orderNumber,
-        payer: { partyIdType: 'MSISDN', partyId: formattedPhone },
-        payerMessage: `Payment for order ${orderNumber}`,
-        payeeNote: `Literacy Tree Canteen Order`
-      }, {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'X-Reference-Id': transactionId,
-          'X-Callback-Url': process.env.MTN_CALLBACK_URL || '',
-          'Ocp-Apim-Subscription-Key': process.env.MTN_SUBSCRIPTION_KEY
+        const reference = response.data?.reference || response.data?.transactionId || response.data?.paymentId || response.data?.data?.reference || response.data?.data?.transactionId || transactionId;
+        const updatePaymentRef = db.prepare(`UPDATE payments SET reference = ? WHERE transaction_id = ?`);
+        updatePaymentRef.run(reference, transactionId);
+
+        return {
+          transactionId: reference,
+          status: 'pending',
+          message: 'Payment initiated. Please complete the Zynle payment prompt on your phone.'
+        };
+      } catch (error) {
+        lastError = error;
+        const status = error.response?.status;
+        if (status !== 404 && status !== 405) {
+          throw new Error(error.response?.data?.message || error.message || 'Zynle payment initiation failed.');
         }
-      });
-    } catch (error) {
-      console.error('MTN API Error, falling back to simulation:', error.message);
+      }
     }
+
+    throw new Error(lastError?.response?.data?.message || 'ZynlePay API endpoint is not reachable using the configured credentials.');
   }
 
-  // SANDBOX MODE: Simulate the USSD Push callback
-  console.log(`[MTN] Payment initiated: Order ${orderNumber}, Amount K${amount}, Phone ${formattedPhone}, Ref: ${transactionId}`);
+  const newTransactionId = transactionId;
+  console.log(`[ZYNLE] Payment initiated locally: Order ${orderNumber}, Amount K${amount}, Phone ${formattedPhone}, Ref: ${newTransactionId}`);
   setTimeout(() => {
-    simulatePaymentCallback('mtn', transactionId, orderId, orderNumber, amount);
+    const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
+    updatePayment.run(JSON.stringify({ status: 'success', transactionId: newTransactionId, amount, provider: 'zynle' }), newTransactionId);
+
+    const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
+    updateOrder.run(orderId);
   }, 3000);
-  
-  return { 
-    transactionId, 
-    status: 'pending', 
-    message: 'Payment initiated. Please check your MTN Mobile Money for payment prompt.' 
+
+  return {
+    transactionId: newTransactionId,
+    status: 'pending',
+    message: 'Payment initiated. Please complete the Zynle payment prompt on your phone.'
   };
-}
-
-async function initiateAirtelPayment(orderNumber, amount, phoneNumber, orderId) {
-  const formattedPhone = formatPhoneForAPI(phoneNumber);
-  const transactionId = `AIR-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-  
-  // Store transaction record
-  const insertPayment = db.prepare(`INSERT INTO payments (order_id, transaction_id, provider, amount, phone_number, status)
-                                   VALUES (?, ?, ?, ?, ?, 'pending')`);
-  insertPayment.run(orderId, transactionId, 'airtel', amount, phoneNumber);
-
-  // PRODUCTION MODE: If Airtel API URL exists in .env, hit the real API
-  if (process.env.AIRTEL_API_URL && process.env.AIRTEL_CLIENT_ID) {
-    try {
-      const tokenResponse = await axios.post(
-        `${process.env.AIRTEL_API_URL}/auth/oauth2/token`,
-        {
-          client_id: process.env.AIRTEL_CLIENT_ID,
-          client_secret: process.env.AIRTEL_CLIENT_SECRET,
-          grant_type: 'client_credentials'
-        }
-      );
-      const bearerToken = tokenResponse.data.access_token;
-
-      await axios.post(`${process.env.AIRTEL_API_URL}/merchant/v1/payments/`, {
-        reference: orderNumber,
-        subscriber: { country: "ZM", currency: "ZMW", msisdn: formattedPhone },
-        transaction: { amount: amount.toString(), country: "ZM", currency: "ZMW", id: transactionId }
-      }, {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'X-API-Key': process.env.AIRTEL_API_KEY,
-          'Content-Type': 'application/json'
-        }
-      });
-    } catch (error) {
-      console.error('Airtel API Error, falling back to simulation:', error.message);
-    }
-  }
-
-  // SANDBOX MODE: Simulate the USSD Push callback
-  console.log(`[Airtel] Payment initiated: Order ${orderNumber}, Amount K${amount}, Phone ${formattedPhone}, Ref: ${transactionId}`);
-  setTimeout(() => {
-    simulatePaymentCallback('airtel', transactionId, orderId, orderNumber, amount);
-  }, 3000);
-  
-  return { 
-    transactionId, 
-    status: 'pending', 
-    message: 'Payment initiated. Please check your Airtel Money for payment prompt.' 
-  };
-}
-
-function simulatePaymentCallback(provider, transactionId, orderId, orderNumber, amount) {
-  console.log(`[SIMULATION] ${provider.toUpperCase()} payment successful for order ${orderNumber}`);
-  
-  const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
-  updatePayment.run(JSON.stringify({ status: 'success', transactionId, amount, provider }), transactionId);
-  
-  const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
-  updateOrder.run(orderId);
 }
 
 // ============ AUTHENTICATION ROUTES ============
@@ -448,6 +404,52 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { items, paymentMethod, customerName, phoneNumber, userId, user } = req.body;
+
+    if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
+    if (!paymentMethod || paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
+    if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
+
+    const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
+    if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
+
+    const total = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity || 1)), 0);
+    const orderNumber = generateOrderNumber();
+    const resolvedCustomerName = customerName || user?.full_name || user?.username || 'Guest';
+
+    const insertOrder = userId
+      ? db.prepare(`INSERT INTO orders (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      : db.prepare(`INSERT INTO orders (order_number, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
+    const info = userId
+      ? insertOrder.run(orderNumber, userId, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending')
+      : insertOrder.run(orderNumber, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const orderId = info.lastInsertRowid;
+
+    try {
+      const paymentResult = await initiateZynlePayment(orderNumber, total, phoneNumber, orderId);
+      res.json({
+        success: true,
+        orderNumber,
+        transactionId: paymentResult.transactionId,
+        paymentStatus: paymentResult.status,
+        message: paymentResult.message
+      });
+    } catch (paymentError) {
+      console.error('Payment initiation error:', paymentError);
+      db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
+      res.status(503).json({ error: paymentError.message });
+    }
+  } catch (error) {
+    console.error('Checkout session error:', error);
+    res.status(500).json({ error: 'Failed to process checkout' });
+  }
+});
+
 // Protected order creation - requires authentication
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
@@ -455,7 +457,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     
     if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
-    if (!paymentMethod || !['mtn', 'airtel'].includes(paymentMethod)) return res.status(400).json({ error: 'Invalid payment method' });
+    if (paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
     
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
@@ -471,11 +473,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     
     try {
       let paymentResult;
-      if (paymentMethod === 'mtn') {
-        paymentResult = await initiateMTNPayment(orderNumber, total, phoneNumber, orderId);
-      } else {
-        paymentResult = await initiateAirtelPayment(orderNumber, total, phoneNumber, orderId);
-      }
+      paymentResult = await initiateZynlePayment(orderNumber, total, phoneNumber, orderId);
       
       res.json({
         success: true,
@@ -487,7 +485,8 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       
     } catch (paymentError) {
       console.error('Payment initiation error:', paymentError);
-      res.status(500).json({ error: 'Payment initiation failed', details: paymentError.message });
+      db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
+      res.status(503).json({ error: paymentError.message });
     }
     
   } catch (error) {
@@ -502,7 +501,7 @@ app.post('/api/guest-checkout', async (req, res) => {
     const { items, paymentMethod, customerName, phoneNumber } = req.body;
     
     if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
-    if (!paymentMethod || !['mtn', 'airtel'].includes(paymentMethod)) return res.status(400).json({ error: 'Invalid payment method' });
+    if (paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
     
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
@@ -518,11 +517,7 @@ app.post('/api/guest-checkout', async (req, res) => {
     
     try {
       let paymentResult;
-      if (paymentMethod === 'mtn') {
-        paymentResult = await initiateMTNPayment(orderNumber, total, phoneNumber, orderId);
-      } else {
-        paymentResult = await initiateAirtelPayment(orderNumber, total, phoneNumber, orderId);
-      }
+      paymentResult = await initiateZynlePayment(orderNumber, total, phoneNumber, orderId);
       
       res.json({
         success: true,
@@ -534,7 +529,8 @@ app.post('/api/guest-checkout', async (req, res) => {
       
     } catch (paymentError) {
       console.error('Payment initiation error:', paymentError);
-      res.status(500).json({ error: 'Payment initiation failed', details: paymentError.message });
+      db.prepare('DELETE FROM orders WHERE id = ?').run(orderId);
+      res.status(503).json({ error: paymentError.message });
     }
     
   } catch (error) {
@@ -549,15 +545,36 @@ app.get('/api/payment-status/:orderNumber', async (req, res) => {
                               FROM orders o LEFT JOIN payments p ON o.id = p.order_id 
                               WHERE o.order_number = ?`);
   const order = getOrder.get(orderNumber);
-  
+
   if (!order) return res.status(404).json({ error: 'Order not found' });
-  
+
   res.json({
     orderNumber: order.order_number,
     totalAmount: order.total_amount,
     paymentStatus: order.payment_status,
     orderStatus: order.status
   });
+});
+
+app.post('/api/payments/zynle-callback', express.json(), async (req, res) => {
+  try {
+    const callbackData = req.body || {};
+    const status = String(callbackData.status || callbackData.state || callbackData.data?.status || '').toUpperCase();
+    const transactionId = callbackData.transactionId || callbackData.reference || callbackData.paymentId || callbackData.data?.transactionId || callbackData.id;
+
+    if (transactionId && ['SUCCESS', 'PAID', 'COMPLETED', 'APPROVED'].includes(status)) {
+      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ? OR reference = ?`);
+      updatePayment.run(JSON.stringify(callbackData), transactionId, transactionId);
+
+      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
+                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ? OR reference = ?)`);
+      updateOrder.run(transactionId, transactionId);
+    }
+
+    res.json({ status: 'received' });
+  } catch (error) {
+    res.status(200).json({ status: 'error' });
+  }
 });
 
 // Get user's orders
@@ -569,42 +586,6 @@ app.get('/api/my-orders', authenticateToken, (req, res) => {
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });
-  }
-});
-
-app.post('/api/payments/mtn-callback', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    const callbackData = JSON.parse(req.body.toString());
-    const transactionId = callbackData.referenceId;
-    if (callbackData.status === 'SUCCESSFUL') {
-      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
-      updatePayment.run(JSON.stringify(callbackData), transactionId);
-      
-      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
-                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`);
-      updateOrder.run(transactionId);
-    }
-    res.json({ status: 'received' });
-  } catch (error) {
-    res.status(200).json({ status: 'error' });
-  }
-});
-
-app.post('/api/payments/airtel-callback', express.json(), async (req, res) => {
-  try {
-    const callbackData = req.body;
-    const transactionId = callbackData.transaction?.id;
-    if (callbackData.transaction?.status === 'SUCCESS') {
-      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
-      updatePayment.run(JSON.stringify(callbackData), transactionId);
-      
-      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
-                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ?)`);
-      updateOrder.run(transactionId);
-    }
-    res.json({ status: 'received' });
-  } catch (error) {
-    res.status(200).json({ status: 'error' });
   }
 });
 
@@ -651,9 +632,7 @@ app.listen(PORT, () => {
 ║   LITERACY TREE CANTEEN - PRODUCTION BACKEND         ║
 ╠═══════════════════════════════════════════════════════╣
 ║   🚀 Server running on: http://localhost:${PORT}        ║
-║   📱 MTN Mobile Money: ${process.env.MTN_API_URL ? '✅ Live API' : '⚠️ Sandbox Mode'}    ║
-║   💛 Airtel Money: ${process.env.AIRTEL_API_URL ? '✅ Live API' : '⚠️ Sandbox Mode'}      ║
-║   💳 Payment methods: MTN, Airtel                     ║
+║   💳 Payment provider: ZynlePay (integration required) ║
 ║   🔐 Authentication: JWT enabled                     ║
 ╚═══════════════════════════════════════════════════════╝
   `);

@@ -910,8 +910,7 @@
                             <i class="fas fa-credit-card text-2xl" style="color:var(--primary)"></i>
                         </div>
                         <h3 class="font-display font-bold text-xl mb-3" style="color:var(--text)">Flexible Payments</h3>
-                        <p style="color:var(--text-muted)">Pay with mobile money (Airtel, MTN, Zamtel) or Visa card
-                            conveniently.</p>
+                        <p style="color:var(--text-muted)">Complete your order securely through ZynlePay.</p>
                     </div>
                     <div class="card-elevated p-8 text-center reveal reveal-delay-4">
                         <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center"
@@ -1216,30 +1215,12 @@
                     </div>
                     <div>
                         <label class="block mb-3 font-medium text-sm" style="color:var(--text)">Payment Method</label>
-                        <div class="grid grid-cols-2 gap-3" id="paymentMethods">
+                        <div class="grid grid-cols-1 gap-3" id="paymentMethods">
                             <button class="p-4 rounded-xl border-2 text-center transition-all payment-opt"
-                                style="border-color:var(--border)" data-method="airtel"
-                                onclick="selectPayment('airtel',this)">
-                                <div class="font-bold text-sm" style="color:var(--text)">Airtel</div>
-                                <div class="text-xs" style="color:var(--text-muted)">Mobile Money</div>
-                            </button>
-                            <button class="p-4 rounded-xl border-2 text-center transition-all payment-opt"
-                                style="border-color:var(--border)" data-method="mtn"
-                                onclick="selectPayment('mtn',this)">
-                                <div class="font-bold text-sm" style="color:var(--text)">MTN</div>
-                                <div class="text-xs" style="color:var(--text-muted)">Mobile Money</div>
-                            </button>
-                            <button class="p-4 rounded-xl border-2 text-center transition-all payment-opt"
-                                style="border-color:var(--border)" data-method="zamtel"
-                                onclick="selectPayment('zamtel',this)">
-                                <div class="font-bold text-sm" style="color:var(--text)">Zamtel</div>
-                                <div class="text-xs" style="color:var(--text-muted)">Mobile Money</div>
-                            </button>
-                            <button class="p-4 rounded-xl border-2 text-center transition-all payment-opt"
-                                style="border-color:var(--border)" data-method="visa"
-                                onclick="selectPayment('visa',this)">
-                                <div class="font-bold text-sm" style="color:var(--text)">Visa</div>
-                                <div class="text-xs" style="color:var(--text-muted)">Card Payment</div>
+                                style="border-color:var(--border)" data-method="zynle"
+                                onclick="selectPayment('zynle',this)">
+                                <div class="font-bold text-sm" style="color:var(--text)">ZynlePay</div>
+                                <div class="text-xs" style="color:var(--text-muted)">Secure checkout</div>
                             </button>
                         </div>
                     </div>
@@ -1431,15 +1412,9 @@
                 <!-- Column 3: Payment Methods -->
                 <div class="text-center sm:text-left">
                     <h4 class="font-bold text-white mb-5">Payment Methods</h4>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 gap-3">
                         <div class="px-3 py-2.5 rounded-lg bg-white/10 text-white/80 text-sm text-center font-medium">
-                            Airtel</div>
-                        <div class="px-3 py-2.5 rounded-lg bg-white/10 text-white/80 text-sm text-center font-medium">
-                            MTN</div>
-                        <div class="px-3 py-2.5 rounded-lg bg-white/10 text-white/80 text-sm text-center font-medium">
-                            Zamtel</div>
-                        <div class="px-3 py-2.5 rounded-lg bg-white/10 text-white/80 text-sm text-center font-medium">
-                            Visa</div>
+                            ZynlePay</div>
                     </div>
                     <div class="mt-6 p-4 rounded-xl bg-white/5">
                         <p class="text-white/50 text-xs leading-relaxed"><i class="fas fa-shield-alt mr-1"></i> All
@@ -2501,26 +2476,19 @@
                 if (item) items.push({ name: item.name, price: item.price, quantity: cart[i].qty });
             }
 
-            apiCall('/create-checkout-session', {
+            apiCall('/api/orders', {
                 method: 'POST',
                 body: {
                     items: items,
-                    paymentMethod: selectedPayment,
+                    paymentMethod: 'zynle',
                     customerName: currentUser.full_name || currentUser.name,
                     phoneNumber: currentUser.phone || '',
                     userId: currentUser.id
                 }
             }).then(function (data) {
-                closeCheckout();
-                closeCart();
-                cart = [];
-                saveCart();
-                updateCartBadge();
-                showToast('Order ' + data.orderNumber + ' placed! ' + data.message, 'success');
-                showDashboard();
-
-                // Poll payment status
-                if (data.orderNumber) pollPaymentStatus(data.orderNumber);
+                if (!data.checkoutUrl) throw new Error('ZynlePay did not return a checkout URL');
+                window.location.assign(data.checkoutUrl);
+                return;
             }).catch(function (err) {
                 showToast(err.message || 'Order failed. Please try again.', 'error');
             }).finally(function () {
@@ -2547,6 +2515,11 @@
                 }).catch(function () { });
             }, 3000);
         }
+
+        /*
+         * Existing dashboard refresh behavior remains available after ZynlePay
+         * returns the customer to the application.
+         */
 
         // ===== KEYBOARD =====
         document.addEventListener('keydown', function (e) {
