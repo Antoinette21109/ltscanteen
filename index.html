@@ -755,6 +755,11 @@
                     <a href="#contact" class="font-medium transition-all hover:-translate-y-0.5"
                         style="color:var(--text)" onmouseover="this.style.color='var(--primary)'"
                         onmouseout="this.style.color='var(--text)'" onclick="showHomePage()">Contact</a>
+                    <button class="px-4 py-2 rounded-xl font-medium text-sm transition-all"
+                        style="background:rgba(26,71,42,0.08);color:var(--primary);border:1px solid rgba(26,71,42,0.12)"
+                        onclick="event.preventDefault(); currentUser && currentUser.role === 'admin' ? showChefPortal() : showAuth()">
+                        Chef Portal
+                    </button>
                     <button id="desktopThemeToggle" class="w-14 h-7 rounded-full relative transition-all cursor-pointer"
                         style="background:var(--border)" onclick="toggleTheme()" aria-label="Toggle dark mode">
                         <div id="desktopThemeKnob"
@@ -1152,6 +1157,55 @@
                             <i class="fas fa-utensils mr-2"></i>Browse Menu
                         </button>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chef Dashboard -->
+        <section class="py-8 sm:py-12" id="chefDashboardSection" style="display:none">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="card-elevated p-6 sm:p-8 mb-6" style="background:linear-gradient(135deg,#1a472a,#2d6a3d);border:none">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(255,255,255,0.12)">
+                                <i class="fas fa-user-chef text-2xl text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="font-display font-bold text-xl sm:text-2xl text-white">Chef Portal</h2>
+                                <p class="text-white/70 text-sm" id="chefName">School Chef</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all" style="background:rgba(255,255,255,0.12);color:white" onclick="showHomePage()">
+                                <i class="fas fa-home mr-2"></i>Home
+                            </button>
+                            <button class="px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all" style="background:rgba(255,255,255,0.15)" onclick="logout()">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="card-elevated p-5 text-center">
+                        <div class="text-xs uppercase tracking-wide" style="color:var(--text-muted)">Total Orders</div>
+                        <div class="font-display font-bold text-3xl mt-2" id="chefTotalOrders" style="color:var(--primary)">0</div>
+                    </div>
+                    <div class="card-elevated p-5 text-center">
+                        <div class="text-xs uppercase tracking-wide" style="color:var(--text-muted)">Pending</div>
+                        <div class="font-display font-bold text-3xl mt-2" id="chefPendingOrders" style="color:var(--accent)">0</div>
+                    </div>
+                    <div class="card-elevated p-5 text-center">
+                        <div class="text-xs uppercase tracking-wide" style="color:var(--text-muted)">Paid</div>
+                        <div class="font-display font-bold text-3xl mt-2" id="chefPaidOrders" style="color:var(--primary-light)">0</div>
+                    </div>
+                </div>
+
+                <div class="card-elevated p-6 sm:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-display font-bold text-xl" style="color:var(--text)">Orders & Payment Status</h3>
+                    </div>
+                    <div id="chefOrdersList" class="space-y-3"></div>
                 </div>
             </div>
         </section>
@@ -1806,9 +1860,13 @@
                 localStorage.setItem('ltToken', data.token);
                 currentUser = data.user;
                 localStorage.setItem('ltUser', JSON.stringify(data.user));
-                showToast('Welcome back, ' + data.user.full_name + '!', 'success');
+                showToast('Welcome back, ' + (data.user.full_name || data.user.username) + '!', 'success');
                 updateHeaderForUser();
-                showDashboard();
+                if (data.user.role === 'admin') {
+                    showChefPortal();
+                } else {
+                    showDashboard();
+                }
             }).catch(function (err) {
                 showToast(err.message, 'error');
             }).finally(function () {
@@ -1876,8 +1934,13 @@
 
             if (isLoggedIn) {
                 var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
-                loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
-                loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
+                if (currentUser.role === 'admin') {
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Chef';
+                    loginBtn.onclick = function (e) { e.preventDefault(); showChefPortal(); };
+                } else {
+                    loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
+                    loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
+                }
             } else {
                 loginBtn.innerHTML = 'Login';
                 loginBtn.onclick = function (e) { e.preventDefault(); showAuth(); };
@@ -1901,8 +1964,13 @@
             var loginBtn = document.getElementById('headerLoginBtn');
             if (isLoggedIn) {
                 var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
-                loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
-                loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
+                if (currentUser.role === 'admin') {
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Chef';
+                    loginBtn.onclick = function (e) { e.preventDefault(); showChefPortal(); };
+                } else {
+                    loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
+                    loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
+                }
             } else {
                 loginBtn.innerHTML = 'Login';
                 loginBtn.onclick = function (e) { e.preventDefault(); showAuth(); };
@@ -1959,7 +2027,7 @@
 
         // ===== SECTIONS =====
         function hideAllSections() {
-            var ids = ['home', 'features', 'menuPreview', 'contact', 'authSection', 'dashboardSection', 'menuSection'];
+            var ids = ['home', 'features', 'menuPreview', 'contact', 'authSection', 'dashboardSection', 'chefDashboardSection', 'menuSection'];
             for (var i = 0; i < ids.length; i++) {
                 document.getElementById(ids[i]).style.display = 'none';
             }
@@ -1967,6 +2035,10 @@
 
         function showDashboard() {
             if (!currentUser) { showAuth(); return; }
+            if (currentUser.role === 'admin') {
+                showChefPortal();
+                return;
+            }
             hideAllSections();
             document.getElementById('dashboardSection').style.display = 'block';
             var name = currentUser.full_name || currentUser.name || 'User';
@@ -1975,6 +2047,18 @@
             activeFilter = 'all';
             renderOrdersFromDB();
             renderDashboardStatsFromDB();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showChefPortal() {
+            if (!currentUser || currentUser.role !== 'admin') {
+                showAuth();
+                return;
+            }
+            hideAllSections();
+            document.getElementById('chefDashboardSection').style.display = 'block';
+            document.getElementById('chefName').textContent = currentUser.full_name || 'School Chef';
+            loadChefOrders();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2200,11 +2284,68 @@
             // If we're on dashboard/menu/auth, restore main page sections
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('chefDashboardSection').style.display = 'none';
             document.getElementById('menuSection').style.display = 'none';
             document.getElementById('home').style.display = '';
             document.getElementById('features').style.display = '';
             document.getElementById('menuPreview').style.display = '';
             document.getElementById('contact').style.display = '';
+        }
+
+        function loadChefOrders() {
+            apiCall('/api/admin/orders').then(function (orders) {
+                var listEl = document.getElementById('chefOrdersList');
+                var total = orders.length;
+                var pending = 0;
+                var paid = 0;
+
+                orders.forEach(function (order) {
+                    if (order.payment_status === 'completed' || order.status === 'confirmed') {
+                        paid++;
+                    }
+                    if (order.payment_status === 'pending' || order.status === 'pending') {
+                        pending++;
+                    }
+                });
+
+                document.getElementById('chefTotalOrders').textContent = total;
+                document.getElementById('chefPendingOrders').textContent = pending;
+                document.getElementById('chefPaidOrders').textContent = paid;
+
+                if (!orders.length) {
+                    listEl.innerHTML = '<div class="text-center py-10" style="color:var(--text-muted)">No orders yet.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = orders.map(function (order) {
+                    var itemData = [];
+                    try { itemData = JSON.parse(order.items || '[]'); } catch (e) { itemData = []; }
+                    var itemText = itemData.map(function (it) { return (it.name || it.item || 'Item') + ' x' + (it.quantity || it.qty || 1); }).join(', ') || 'No items';
+                    var paymentBadge = order.payment_status === 'completed' ? 'status-completed' : 'status-pending';
+                    var statusBadge = order.status === 'completed' ? 'status-completed' : order.status === 'confirmed' ? 'status-pending' : 'status-pending';
+                    return '<div class="p-4 rounded-xl" style="background:var(--bg);border-left:4px solid ' + (order.payment_status === 'completed' ? 'var(--primary-light)' : 'var(--accent)') + '">' +
+                        '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">' +
+                        '<div>' +
+                        '<div class="font-bold" style="color:var(--text)">' + (order.order_number || 'Order') + '</div>' +
+                        '<div class="text-sm" style="color:var(--text-muted)">' + order.customer_name + ' • ' + order.customer_phone + '</div>' +
+                        '</div>' +
+                        '<div class="flex flex-wrap gap-2">' +
+                        '<span class="status-badge ' + paymentBadge + '">Payment: ' + (order.payment_status || 'pending') + '</span>' +
+                        '<span class="status-badge ' + statusBadge + '">Order: ' + (order.status || 'pending') + '</span>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="text-sm mb-2" style="color:var(--text-muted)">' + itemText + '</div>' +
+                        '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm" style="color:var(--text-muted)">' +
+                        '<span>Total: <strong style="color:var(--text)">ZMW ' + Number(order.total_amount || 0).toFixed(2) + '</strong></span>' +
+                        '<span>Method: <strong style="color:var(--text)">' + (order.payment_method || 'zynle').toUpperCase() + '</strong></span>' +
+                        '<span>Placed: ' + (order.created_at || '').replace('T', ' ').substring(0, 16) + '</span>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            }).catch(function (err) {
+                console.error('Failed to load chef orders:', err);
+                document.getElementById('chefOrdersList').innerHTML = '<div class="text-center py-10" style="color:var(--text-muted)">Unable to load orders.</div>';
+            });
         }
 
         var receiptOrderData = [];

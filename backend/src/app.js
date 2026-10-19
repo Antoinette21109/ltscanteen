@@ -6,7 +6,6 @@ import './config/env.js';
 import authRoutes from './routes/auth.js';
 import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
-import paymentRoutes from './routes/paymentRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +25,6 @@ app.use(express.static(publicRoot));
 app.use(authRoutes);
 app.use(orderRoutes);
 app.use(adminRoutes);
-app.use('/api/payments', paymentRoutes);
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(publicRoot, 'index.html'));

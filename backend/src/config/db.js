@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -52,5 +53,11 @@ const schema = `
 `;
 
 db.exec(schema);
+
+const adminPassword = bcrypt.hashSync('Admin123!', 10);
+db.prepare(`
+  INSERT OR IGNORE INTO users (username, password, full_name, phone, role)
+  VALUES (?, ?, ?, ?, ?)
+`).run('admin@literacytree.com', adminPassword, 'School Chef', '+260974754810', 'admin');
 
 export default db;

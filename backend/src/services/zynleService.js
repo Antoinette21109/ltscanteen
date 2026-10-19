@@ -13,50 +13,69 @@ export async function initiateZynlePayment(orderNumber, amount, phoneNumber, ord
   `);
   insertPayment.run(orderId, transactionId, 'zynle', amount, phoneNumber);
 
-  const apiId = env.ZYNLE_API_ID;
-  const apiKey = env.ZYNLE_API_KEY;
-  const merchantCode = env.ZYNLE_MERCHANT_CODE;
+  const zynleUrl = env.ZYNLE_API_URL;
+  const zynleKey = env.ZYNLE_API_KEY;
 
-  if (apiId && apiKey && merchantCode) {
+  if (zynleUrl && zynleKey) {
+    const baseUrl = zynleUrl.replace(/\/$/, '');
+    const callbackUrl = env.ZYNLE_CALLBACK_URL || `${env.PUBLIC_BASE_URL}/api/payments/zynle-callback`;
     const payload = {
-      api_id: apiId,
-      api_key: apiKey,
-      merchant_code: merchantCode,
+      merchantId: env.ZYNLE_MERCHANT_ID,
+      merchant_id: env.ZYNLE_MERCHANT_ID,
       amount: Number(amount).toFixed(2),
-      reference_no: orderNumber,
-      success_url: env.ZYNLE_SUCCESS_URL,
-      failed_url: env.ZYNLE_FAILED_URL,
-      description: `Canteen order ${orderNumber}`,
-      phone_number: formattedPhone,
-      customer_name: 'Customer',
-      currency: env.CURRENCY
+      currency: env.CURRENCY,
+      orderId: orderNumber,
+      order_id: orderNumber,
+      externalId: orderNumber,
+      external_id: orderNumber,
+      phoneNumber: formattedPhone,
+      customerPhone: formattedPhone,
+      callbackUrl,
+      callback_url: callbackUrl,
+      metadata: { orderId, orderNumber, transactionId, provider: 'zynle' }
     };
 
-    try {
-      const response = await axios.post(env.ZYNLE_WITHDRAW_URL, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: '*/*'
-        },
-        timeout: 30000
-      });
+    const endpointCandidates = [
+      `${baseUrl}/payments/initiate`,
+      `${baseUrl}/api/payments/initiate`,
+      `${baseUrl}/payment/initiate`,
+      `${baseUrl}/initiate-payment`
+    ];
 
-      const reference = response.data?.reference_no || response.data?.reference || response.data?.transactionId || orderNumber;
-      const updatePaymentRef = db.prepare(`UPDATE payments SET reference = ? WHERE transaction_id = ?`);
-      updatePaymentRef.run(reference, transactionId);
+    let lastError = null;
+    for (const endpoint of endpointCandidates) {
+      try {
+        const response = await axios.post(endpoint, payload, {
+          headers: {
+            Authorization: `Bearer ${zynleKey}`,
+            'Content-Type': 'application/json',
+            'X-API-Key': zynleKey
+          },
+          timeout: 20000
+        });
 
-      return {
-        transactionId: reference,
-        status: response.data?.response_code || 'pending',
-        message: response.data?.message || 'Payment initiated. Please complete the Zynle payment prompt on your phone.'
-      };
-    } catch (error) {
-      console.error('Zynle API error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || error.message || 'Zynle payment initiation failed.');
+        const reference = response.data?.reference || response.data?.transactionId || response.data?.paymentId || response.data?.data?.reference || response.data?.data?.transactionId || transactionId;
+        const updatePaymentRef = db.prepare(`UPDATE payments SET reference = ? WHERE transaction_id = ?`);
+        updatePaymentRef.run(reference, transactionId);
+
+        return {
+          transactionId: reference,
+          status: 'pending',
+          message: 'Payment initiated. Please complete the Zynle payment prompt on your phone.'
+        };
+      } catch (error) {
+        lastError = error;
+        const status = error.response?.status;
+        if (status !== 404 && status !== 405) {
+          throw new Error(error.response?.data?.message || error.message || 'Zynle payment initiation failed.');
+        }
+      }
     }
+
+    throw new Error(lastError?.response?.data?.message || 'ZynlePay API endpoint is not reachable using the configured credentials.');
   }
 
-  console.log(`[ZYNLE] Local simulation: Order ${orderNumber}, Amount K${amount}, Phone ${formattedPhone}, Ref: ${transactionId}`);
+  console.log(`[ZYNLE] Payment initiated locally: Order ${orderNumber}, Amount K${amount}, Phone ${formattedPhone}, Ref: ${transactionId}`);
   setTimeout(() => {
     const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ?`);
     updatePayment.run(JSON.stringify({ status: 'success', transactionId, amount, provider: 'zynle' }), transactionId);
@@ -70,22 +89,4 @@ export async function initiateZynlePayment(orderNumber, amount, phoneNumber, ord
     status: 'pending',
     message: 'Payment initiated. Please complete the Zynle payment prompt on your phone.'
   };
-}
-
-export async function checkZynleTransactionStatus(referenceNo) {
-  const payload = {
-    api_id: env.ZYNLE_API_ID,
-    api_key: env.ZYNLE_API_KEY,
-    reference_no: referenceNo
-  };
-
-  const response = await axios.post(env.ZYNLE_STATUS_URL, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: '*/*'
-    },
-    timeout: 30000
-  });
-
-  return response.data;
 }

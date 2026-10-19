@@ -24,5 +24,3 @@ export const isAdmin = (req, res, next) => {
   }
   next();
 };
-
-export const requireAdmin = isAdmin;
