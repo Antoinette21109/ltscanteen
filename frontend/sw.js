@@ -88,3 +88,31 @@ self.addEventListener('fetch', function (event) {
         })
     );
 });
+
+self.addEventListener('push', function (event) {
+    let payload = {};
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch (error) {
+        payload = { title: 'Literacy Tree Canteen', body: event.data ? event.data.text() : '' };
+    }
+    event.waitUntil(self.registration.showNotification(payload.title || 'Literacy Tree Canteen', {
+        body: payload.body || 'You have a new canteen reminder.',
+        icon: new URL('assets/images/School-logo.webp', APP_ROOT).href,
+        badge: new URL('assets/images/School-logo.webp', APP_ROOT).href,
+        data: { url: payload.url || './' }
+    }));
+});
+
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+    const targetUrl = new URL(event.notification.data?.url || './', APP_ROOT).href;
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
+            for (const client of clients) {
+                if (client.url === targetUrl && 'focus' in client) return client.focus();
+            }
+            return self.clients.openWindow(targetUrl);
+        })
+    );
+});

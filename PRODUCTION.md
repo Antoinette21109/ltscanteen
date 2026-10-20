@@ -60,8 +60,27 @@ PUBLIC_BASE_URL=https://your-production-domain.com
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+SMTP_FROM="Literacy Tree Canteen <canteen@example.com>"
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+VAPID_SUBJECT=mailto:admin@literacytree.com
+SCHOOL_TIME_ZONE=Africa/Lusaka
 CURRENCY=ZMW
 ```
+
+Generate browser push keys with `npx web-push generate-vapid-keys`. SMTP is
+required for order receipts and email reminders; VAPID keys are required for
+browser push reminders. Profile image uploads use the Cloudinary credentials
+listed above. Reminders are sent on weekdays in `SCHOOL_TIME_ZONE`. Admins set
+break, lunch, and other reminder times from Admin Dashboard → Settings. New
+databases are initialized with a 10:30 AM morning break and 12:30 PM lunch,
+each with a 30-minute reminder. `BREAK_TIME` and `BREAK_REMINDER_MINUTES` can
+override the initial morning-break schedule before the database is created.
 
 ## 3. Run in production
 

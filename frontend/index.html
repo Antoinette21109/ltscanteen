@@ -1089,9 +1089,10 @@
                     style="background:linear-gradient(135deg,var(--primary),var(--primary-light));border:none">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center"
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
                                 style="background:rgba(255,255,255,0.15)">
-                                <i class="fas fa-user text-2xl text-white"></i>
+                                <i id="dashAvatarIcon" class="fas fa-user text-2xl text-white"></i>
+                                <img id="dashAvatar" alt="Your profile" class="w-full h-full object-cover" style="display:none">
                             </div>
                             <div>
                                 <h2 class="font-display font-bold text-xl sm:text-2xl text-white" id="dashName"></h2>
@@ -1107,6 +1108,84 @@
                                 style="background:rgba(255,255,255,0.15)" onclick="logout()">
                                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-5 mb-6">
+                    <div class="card-elevated p-6">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                                style="background:rgba(26,71,42,0.1);color:var(--primary)">
+                                <i class="fas fa-user-circle text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-display font-bold text-lg" style="color:var(--text)">Parent profile</h3>
+                                <p class="text-sm" style="color:var(--text-muted)">Your details and profile photo</p>
+                            </div>
+                        </div>
+                        <label class="flex items-center gap-4 mb-4 cursor-pointer">
+                            <img id="parentProfilePhoto" alt="Parent profile" class="w-16 h-16 rounded-full object-cover"
+                                style="background:var(--bg);display:none">
+                            <span id="parentProfilePhotoFallback"
+                                class="w-16 h-16 rounded-full flex items-center justify-center text-2xl"
+                                style="background:var(--bg);color:var(--primary)"><i class="fas fa-user"></i></span>
+                            <span class="text-sm font-semibold" style="color:var(--primary)">Upload parent photo
+                                <input type="file" accept="image/*" class="block mt-1 text-xs" onchange="uploadProfilePhoto(event)">
+                            </span>
+                        </label>
+                        <div class="space-y-3">
+                            <label class="block text-sm font-medium" style="color:var(--text)">Full name
+                                <input id="parentProfileName" class="form-input mt-1" maxlength="100" autocomplete="name">
+                            </label>
+                            <label class="block text-sm font-medium" style="color:var(--text)">Phone
+                                <input id="parentProfilePhone" class="form-input mt-1" maxlength="30" autocomplete="tel">
+                            </label>
+                            <button class="px-4 py-2.5 rounded-xl font-bold text-white text-sm"
+                                style="background:var(--primary)" onclick="saveParentProfile()">Save profile</button>
+                        </div>
+                    </div>
+
+                    <div class="card-elevated p-6">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="font-display font-bold text-lg" style="color:var(--text)">Children</h3>
+                                <p class="text-sm" style="color:var(--text-muted)">Add a photo and grade for each child</p>
+                            </div>
+                            <i class="fas fa-child text-xl" style="color:var(--primary)"></i>
+                        </div>
+                        <div id="parentChildrenList" class="space-y-4"></div>
+                        <div class="mt-5 pt-4 space-y-3" style="border-top:1px solid var(--border)">
+                            <input id="newChildName" class="form-input" maxlength="100" placeholder="Child's full name">
+                            <input id="newChildGrade" class="form-input" maxlength="50" placeholder="Grade or class">
+                            <button class="px-4 py-2.5 rounded-xl font-bold text-white text-sm"
+                                style="background:var(--primary)" onclick="addChildProfile()">
+                                <i class="fas fa-plus mr-1"></i>Add child
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-elevated p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-display font-bold text-lg" style="color:var(--text)">
+                                <i class="fas fa-bell mr-2" style="color:var(--accent)"></i>Meal-time reminders
+                            </h3>
+                            <p id="reminderSchedule" class="text-sm mt-1" style="color:var(--text-muted)">
+                                Get reminders before school break, lunch, and other scheduled meal times.
+                            </p>
+                            <p id="reminderAvailability" class="text-xs mt-2" style="color:var(--text-muted)"></p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2 text-sm" style="color:var(--text)">
+                                <input type="checkbox" id="emailReminderEnabled"> Email reminder
+                            </label>
+                            <label class="flex items-center gap-2 text-sm" style="color:var(--text)">
+                                <input type="checkbox" id="pushReminderEnabled"> Browser notification
+                            </label>
+                            <button class="px-4 py-2.5 rounded-xl font-bold text-white text-sm"
+                                style="background:var(--primary)" onclick="saveReminderPreferences()">Save reminders</button>
                         </div>
                     </div>
                 </div>
@@ -1205,6 +1284,11 @@
                             </div>
                         </div>
                         <div class="flex gap-3">
+                            <button id="adminReminderSettingsButton" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+                                style="display:none;background:rgba(255,255,255,0.12);color:white"
+                                onclick="window.location.href='/admin-dashboard.html#settings'">
+                                <i class="fas fa-bell mr-2"></i>Meal Reminders
+                            </button>
                             <button class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all" style="background:rgba(255,255,255,0.12);color:white" onclick="showHomePage()">
                                 <i class="fas fa-home mr-2"></i>Home
                             </button>
@@ -1639,6 +1723,7 @@
 
         // ===== STATE =====
         let currentUser = null;
+        let parentProfile = null;
         let cart = JSON.parse(localStorage.getItem('ltCart') || '[]');
         let orders = JSON.parse(localStorage.getItem('ltOrders') || '[]');
         let activeCategory = 'all';
@@ -1666,6 +1751,7 @@
                     body: options.body ? JSON.stringify(options.body) : undefined
                 });
                 console.log('[API] Response status:', resp.status, resp.statusText);
+                if (resp.status === 204) return null;
                 var text = await resp.text();
                 if (!text) throw new Error('Server returned empty response');
                 var data;
@@ -2195,10 +2281,277 @@
             var name = currentUser.full_name || currentUser.name || 'User';
             document.getElementById('dashName').textContent = 'Welcome, ' + name;
             document.getElementById('dashEmail').textContent = currentUser.username || currentUser.email || '';
+            loadParentProfile().catch(function (err) {
+                console.error('Unable to load parent profile:', err);
+                showToast(err.message || 'Unable to load your profile.', 'error');
+            });
             activeFilter = 'all';
             renderOrdersFromDB();
             renderDashboardStatsFromDB();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function loadParentProfile() {
+            parentProfile = await apiCall('/api/profile');
+            renderParentProfile(parentProfile);
+            return parentProfile;
+        }
+
+        function renderParentProfile(profile) {
+            document.getElementById('parentProfileName').value = profile.full_name || '';
+            document.getElementById('parentProfilePhone').value = profile.phone || '';
+            var photo = document.getElementById('parentProfilePhoto');
+            var fallback = document.getElementById('parentProfilePhotoFallback');
+            var dashPhoto = document.getElementById('dashAvatar');
+            var dashIcon = document.getElementById('dashAvatarIcon');
+            if (profile.profile_image_url) {
+                photo.src = profile.profile_image_url;
+                photo.style.display = 'block';
+                fallback.style.display = 'none';
+                dashPhoto.src = profile.profile_image_url;
+                dashPhoto.style.display = 'block';
+                dashIcon.style.display = 'none';
+            } else {
+                photo.removeAttribute('src');
+                photo.style.display = 'none';
+                fallback.style.display = 'flex';
+                dashPhoto.style.display = 'none';
+                dashIcon.style.display = 'block';
+            }
+
+            var children = profile.children || [];
+            var container = document.getElementById('parentChildrenList');
+            if (!children.length) {
+                container.innerHTML = '<p class="text-sm py-3" style="color:var(--text-muted)">No children added yet. Add a child to place an order.</p>';
+            } else {
+                container.innerHTML = children.map(function (child) {
+                    var childImage = child.photo_url
+                        ? '<img src="' + escapeHtml(child.photo_url) + '" alt="' + escapeHtml(child.name) + '" class="w-14 h-14 rounded-full object-cover">'
+                        : '<span class="w-14 h-14 rounded-full flex items-center justify-center" style="background:var(--bg);color:var(--primary)"><i class="fas fa-user-graduate text-xl"></i></span>';
+                    return '<div class="p-3 rounded-xl space-y-3" style="background:var(--bg)">' +
+                        '<div class="flex items-center gap-3">' + childImage +
+                        '<label class="text-xs font-semibold" style="color:var(--primary)">Upload photo' +
+                        '<input type="file" accept="image/*" class="block mt-1 text-xs" onchange="uploadProfilePhoto(event,' + Number(child.id) + ')"></label></div>' +
+                        '<input id="childName' + Number(child.id) + '" class="form-input" maxlength="100" value="' + escapeHtml(child.name) + '" aria-label="Child name">' +
+                        '<input id="childGrade' + Number(child.id) + '" class="form-input" maxlength="50" value="' + escapeHtml(child.grade || '') + '" placeholder="Grade or class" aria-label="Grade or class">' +
+                        '<div class="flex gap-2"><button class="px-3 py-2 rounded-lg font-bold text-white text-xs" style="background:var(--primary)" onclick="saveChildProfile(' + Number(child.id) + ')">Save child</button>' +
+                        '<button class="px-3 py-2 rounded-lg font-bold text-xs" style="color:#b42318" onclick="deleteChildProfile(' + Number(child.id) + ')">Remove</button></div>' +
+                        '</div>';
+                }).join('');
+            }
+
+            document.getElementById('emailReminderEnabled').checked = Boolean(profile.reminders?.email_enabled);
+            document.getElementById('pushReminderEnabled').checked = Boolean(profile.reminders?.push_enabled);
+            apiCall('/api/push/config').then(function (config) {
+                var status = [];
+                function formatScheduleTime(date) {
+                    return new Intl.DateTimeFormat('en-US', {
+                        timeZone: 'Africa/Lusaka',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    }).format(date);
+                }
+                var schedules = config.schedules || [];
+                document.getElementById('reminderSchedule').textContent = schedules.length
+                    ? 'Reminders: ' + schedules.map(function (schedule) {
+                        var timeParts = schedule.time.split(':');
+                        var time = new Date(2000, 0, 1, Number(timeParts[0]), Number(timeParts[1]));
+                        var reminder = new Date(time.getTime() - Number(schedule.reminder_minutes) * 60000);
+                        return schedule.name + ' at ' + formatScheduleTime(time) + ' (reminder at ' +
+                            formatScheduleTime(reminder) + ')';
+                    }).join(' · ') + ' (Zambia time).'
+                    : 'No meal-time reminders are currently scheduled.';
+                if (!config.emailConfigured) status.push('Email reminders and receipts need SMTP configuration by the administrator.');
+                if (!config.enabled) {
+                    status.push('Browser notifications need VAPID configuration by the administrator.');
+                    document.getElementById('pushReminderEnabled').disabled = true;
+                } else {
+                    document.getElementById('pushReminderEnabled').disabled = false;
+                }
+                document.getElementById('reminderAvailability').textContent = status.join(' ');
+            }).catch(function (error) {
+                console.error('Reminder configuration check failed:', error);
+                document.getElementById('reminderAvailability').textContent = 'Reminder configuration could not be checked.';
+            });
+        }
+
+        async function saveParentProfile() {
+            try {
+                await apiCall('/api/parent-profile', {
+                    method: 'PUT',
+                    body: {
+                        full_name: document.getElementById('parentProfileName').value.trim(),
+                        phone: document.getElementById('parentProfilePhone').value.trim()
+                    }
+                });
+                currentUser.full_name = document.getElementById('parentProfileName').value.trim();
+                currentUser.phone = document.getElementById('parentProfilePhone').value.trim();
+                document.getElementById('dashName').textContent = 'Welcome, ' + currentUser.full_name;
+                localStorage.setItem('ltUser', JSON.stringify(currentUser));
+                showToast('Parent profile saved.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Unable to save profile.', 'error');
+            }
+        }
+
+        async function saveChildProfile(childId) {
+            var childName = document.getElementById('childName' + childId).value.trim();
+            var childGrade = document.getElementById('childGrade' + childId).value.trim();
+            if (!childName || !childGrade) {
+                showToast("Enter the child's name and grade.", 'warning');
+                return;
+            }
+            try {
+                await apiCall('/api/children/' + childId, {
+                    method: 'PUT',
+                    body: {
+                        name: childName,
+                        grade: childGrade
+                    }
+                });
+                await loadParentProfile();
+                showToast('Child profile saved.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Unable to save child profile.', 'error');
+            }
+        }
+
+        async function addChildProfile() {
+            var nameInput = document.getElementById('newChildName');
+            var gradeInput = document.getElementById('newChildGrade');
+            if (!nameInput.value.trim()) {
+                showToast("Enter your child's name.", 'warning');
+                return;
+            }
+            if (!gradeInput.value.trim()) {
+                showToast("Enter your child's grade or class.", 'warning');
+                return;
+            }
+            try {
+                await apiCall('/api/children', {
+                    method: 'POST',
+                    body: { name: nameInput.value.trim(), grade: gradeInput.value.trim() }
+                });
+                nameInput.value = '';
+                gradeInput.value = '';
+                await loadParentProfile();
+                showToast('Child added to your profile.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Unable to add child.', 'error');
+            }
+        }
+
+        async function deleteChildProfile(childId) {
+            if (!window.confirm('Remove this child from your profile?')) return;
+            try {
+                await apiCall('/api/children/' + childId, { method: 'DELETE' });
+                await loadParentProfile();
+                showToast('Child removed from your profile.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Unable to remove child.', 'error');
+            }
+        }
+
+        async function uploadProfilePhoto(event, childId) {
+            var input = event.target;
+            var file = input.files && input.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+                input.value = '';
+                showToast('Choose an image under 5 MB.', 'warning');
+                return;
+            }
+            try {
+                var signature = await apiCall('/api/profile/upload-signature', { method: 'POST', body: {} });
+                var form = new FormData();
+                form.append('file', file);
+                form.append('api_key', signature.apiKey);
+                form.append('timestamp', signature.timestamp);
+                form.append('folder', signature.folder);
+                form.append('signature', signature.signature);
+                var response = await fetch('https://api.cloudinary.com/v1_1/' + encodeURIComponent(signature.cloudName) + '/image/upload', {
+                    method: 'POST',
+                    body: form
+                });
+                var uploaded = await response.json();
+                if (!response.ok || !uploaded.secure_url) {
+                    throw new Error(uploaded.error?.message || 'Photo upload failed.');
+                }
+                if (childId) {
+                    await apiCall('/api/children/' + childId, {
+                        method: 'PUT',
+                        body: { photo_url: uploaded.secure_url }
+                    });
+                } else {
+                    await apiCall('/api/parent-profile', {
+                        method: 'PUT',
+                        body: { profile_image_url: uploaded.secure_url }
+                    });
+                }
+                await loadParentProfile();
+                showToast('Profile photo updated.', 'success');
+            } catch (error) {
+                console.error('Profile photo upload failed:', error);
+                showToast(error.message || 'Unable to upload photo.', 'error');
+            } finally {
+                input.value = '';
+            }
+        }
+
+        function base64UrlToUint8Array(value) {
+            var padding = '='.repeat((4 - value.length % 4) % 4);
+            var base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+            var raw = window.atob(base64);
+            var output = new Uint8Array(raw.length);
+            for (var i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+            return output;
+        }
+
+        async function saveReminderPreferences() {
+            var emailEnabled = document.getElementById('emailReminderEnabled').checked;
+            var pushEnabled = document.getElementById('pushReminderEnabled').checked;
+            try {
+                if (pushEnabled) {
+                    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+                        throw new Error('Browser notifications are not supported on this device.');
+                    }
+                    var permission = Notification.permission === 'granted'
+                        ? 'granted'
+                        : await Notification.requestPermission();
+                    if (permission !== 'granted') throw new Error('Allow notifications in your browser to enable push reminders.');
+                    var config = await apiCall('/api/push/config');
+                    if (!config.enabled || !config.publicKey) throw new Error('Browser notifications are not configured by the administrator.');
+                    var registration = await navigator.serviceWorker.ready;
+                    var subscription = await registration.pushManager.getSubscription();
+                    if (!subscription) {
+                        subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: base64UrlToUint8Array(config.publicKey)
+                        });
+                    }
+                    await apiCall('/api/push/subscriptions', {
+                        method: 'POST',
+                        body: subscription.toJSON()
+                    });
+                } else if ('serviceWorker' in navigator && 'PushManager' in window) {
+                    var readyRegistration = await navigator.serviceWorker.ready;
+                    var existingSubscription = await readyRegistration.pushManager.getSubscription();
+                    if (existingSubscription) {
+                        await apiCall('/api/push/subscriptions', {
+                            method: 'DELETE',
+                            body: { endpoint: existingSubscription.endpoint }
+                        });
+                        await existingSubscription.unsubscribe();
+                    }
+                }
+                await apiCall('/api/reminder-preferences', {
+                    method: 'PUT',
+                    body: { email_enabled: emailEnabled, push_enabled: pushEnabled }
+                });
+                showToast('Break-time reminders saved.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Unable to save reminders.', 'error');
+            }
         }
 
         function showStaffPortal() {
@@ -2209,6 +2562,8 @@
             hideAllSections();
             document.getElementById('chefDashboardSection').style.display = 'block';
             document.getElementById('staffPortalTitle').textContent = currentUser.role === 'admin' ? 'Administrator Portal' : 'Staff Portal';
+            document.getElementById('adminReminderSettingsButton').style.display =
+                currentUser.role === 'admin' ? 'inline-flex' : 'none';
             document.getElementById('chefName').textContent = currentUser.full_name || (currentUser.role === 'admin' ? 'Administrator' : 'Staff member');
             document.getElementById('adminUserManagement').style.display = currentUser.role === 'admin' ? 'block' : 'none';
             document.getElementById('adminMenuReview').style.display = currentUser.role === 'admin' ? 'block' : 'none';
@@ -2453,7 +2808,7 @@
                     '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
                     '</div>' +
                     '<p class="text-sm truncate" style="color:var(--text-muted)">' + itemDesc + '</p>' +
-                    '<p class="text-xs mt-1" style="color:var(--text-muted)"><i class="far fa-clock mr-1"></i>' + dateStr + ' &bull; ' + (o.payment_method || '').toUpperCase() + '</p>' +
+                    '<p class="text-xs mt-1" style="color:var(--text-muted)"><i class="far fa-clock mr-1"></i>' + dateStr + ' &bull; ' + escapeHtml(o.child_name || '') + (o.scheduled_for ? ' • For ' + escapeHtml(o.scheduled_for) : '') + ' &bull; ' + escapeHtml((o.payment_method || '').toUpperCase()) + '</p>' +
                     '</div>' +
                     '<div class="text-right flex-shrink-0 flex items-center gap-3">' +
                     '<span class="font-display font-bold text-lg" style="color:var(--primary)">ZMW ' + parseFloat(o.total_amount || 0).toFixed(2) + '</span>' +
@@ -2999,6 +3354,15 @@
                 '</span>';
             html += '</div>';
 
+            if (order.child_name) {
+                html += '<div class="receipt-row"><span class="receipt-label">Child</span>' +
+                    '<span class="receipt-value">' + escapeHtml(order.child_name) + '</span></div>';
+            }
+            if (order.scheduled_for) {
+                html += '<div class="receipt-row"><span class="receipt-label">Collection date</span>' +
+                    '<span class="receipt-value">' + escapeHtml(order.scheduled_for) + '</span></div>';
+            }
+
             html += '<div class="receipt-row">';
             html += '<span class="receipt-label">Payment: </span>';
             html += '<span class="receipt-value">' +
@@ -3119,24 +3483,40 @@
         }
 
         // ===== CHECKOUT =====
-        function showCheckout() {
+        async function showCheckout() {
             if (cart.length === 0) { showToast('Your cart is empty.', 'warning'); return; }
-            var select = document.getElementById('checkoutChild');
-            select.innerHTML = '<option value="">Choose a child</option>';
-            if (currentUser && currentUser.children) {
-                var kids = currentUser.children.split(',');
-                for (var i = 0; i < kids.length; i++) {
-                    var kid = kids[i].trim();
-                    if (kid) select.innerHTML += '<option value="' + kid + '">' + kid + '</option>';
+            if (!parentProfile) {
+                try {
+                    await loadParentProfile();
+                } catch (error) {
+                    showToast(error.message || 'Unable to load your children.', 'error');
+                    return;
                 }
             }
-            // Set date range: today to 14 days ahead
-            var today = new Date();
-            var maxDate = new Date();
-            maxDate.setDate(maxDate.getDate() + 14);
-            document.getElementById('checkoutDate').min = today.toISOString().split('T')[0];
-            document.getElementById('checkoutDate').max = maxDate.toISOString().split('T')[0];
-            document.getElementById('checkoutDate').value = today.toISOString().split('T')[0];
+            var select = document.getElementById('checkoutChild');
+            select.innerHTML = '<option value="">Choose a child</option>';
+            var kids = parentProfile && parentProfile.children || [];
+            for (var i = 0; i < kids.length; i++) {
+                select.innerHTML += '<option value="' + Number(kids[i].id) + '">' +
+                    escapeHtml(kids[i].name) + (kids[i].grade ? ' - ' + escapeHtml(kids[i].grade) : '') + '</option>';
+            }
+            if (!kids.length) {
+                showToast('Add a child to your profile before placing an order.', 'warning');
+                closeCheckout();
+                showDashboard();
+                return;
+            }
+            var dateParts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Africa/Lusaka', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date()).reduce(function (result, part) {
+                result[part.type] = part.value;
+                return result;
+            }, {});
+            var today = dateParts.year + '-' + dateParts.month + '-' + dateParts.day;
+            var maxDate = new Date(Date.parse(today + 'T00:00:00Z') + 14 * 86400000).toISOString().slice(0, 10);
+            document.getElementById('checkoutDate').min = today;
+            document.getElementById('checkoutDate').max = maxDate;
+            document.getElementById('checkoutDate').value = today;
 
             var total = getCartTotal();
             document.getElementById('checkoutSubtotal').textContent = 'ZMW ' + total.toFixed(2);
@@ -3168,10 +3548,10 @@
         }
 
         function placeOrder() {
-            var child = document.getElementById('checkoutChild').value;
+            var child = Number(document.getElementById('checkoutChild').value);
             var date = document.getElementById('checkoutDate').value;
 
-            if (!child) { showToast('Please select a child.', 'warning'); return; }
+            if (!Number.isInteger(child) || child < 1) { showToast('Please select a child.', 'warning'); return; }
             if (!date) { showToast('Please select a date.', 'warning'); return; }
             if (!selectedPayment) { showToast('Please select a payment method.', 'warning'); return; }
 
@@ -3192,12 +3572,17 @@
                     paymentMethod: 'zynle',
                     customerName: currentUser.full_name || currentUser.name,
                     phoneNumber: currentUser.phone || '',
-                    userId: currentUser.id
+                    childId: child,
+                    scheduledFor: date
                 }
             }).then(function (data) {
-                if (!data.checkoutUrl) throw new Error('ZynlePay did not return a checkout URL');
-                window.location.assign(data.checkoutUrl);
-                return;
+                closeCheckout();
+                cart = [];
+                saveCart();
+                updateCartBadge();
+                renderCart();
+                showToast(data.message || 'Order created. Complete the payment prompt on your phone.', 'success');
+                pollPaymentStatus(data.orderNumber);
             }).catch(function (err) {
                 showToast(err.message || 'Order failed. Please try again.', 'error');
             }).finally(function () {
@@ -3215,7 +3600,7 @@
                 apiCall('/api/payment-status/' + orderNumber).then(function (data) {
                     if (data.paymentStatus === 'completed' || data.orderStatus === 'confirmed') {
                         clearInterval(interval);
-                        showToast('Payment confirmed for ' + orderNumber, 'success');
+                        showToast('Payment confirmed. Your receipt is being emailed.', 'success');
                         if (document.getElementById('dashboardSection').style.display !== 'none') {
                             renderOrdersFromDB();
                             renderDashboardStatsFromDB();

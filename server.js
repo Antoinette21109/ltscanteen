@@ -9,6 +9,9 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import axios from 'axios';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import PDFDocument from 'pdfkit';
+import webPush from 'web-push';
 import {
   createCloudinaryUploadSignature,
   formatMenuItem,
@@ -26,6 +29,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+const BREAK_TIME = process.env.BREAK_TIME || '10:30';
+const BREAK_REMINDER_MINUTES = Number(process.env.BREAK_REMINDER_MINUTES || 30);
+const SCHOOL_TIME_ZONE = process.env.SCHOOL_TIME_ZONE || 'Africa/Lusaka';
+if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(BREAK_TIME) ||
+  !Number.isInteger(BREAK_REMINDER_MINUTES) || BREAK_REMINDER_MINUTES < 1 || BREAK_REMINDER_MINUTES > 180) {
+  throw new Error('BREAK_TIME must be HH:MM and BREAK_REMINDER_MINUTES must be from 1 to 180.');
+}
 
 // ============ MIDDLEWARE ============
 app.use(cors({
@@ -85,6 +95,126 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+function ensureColumn(table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!columns.some((entry) => entry.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
+ensureColumn('users', 'profile_image_url', 'TEXT');
+ensureColumn('orders', 'child_id', 'INTEGER');
+ensureColumn('orders', 'child_name', 'TEXT');
+ensureColumn('orders', 'scheduled_for', 'TEXT');
+ensureColumn('orders', 'receipt_sent_at', 'DATETIME');
+
+const reminderSchedulesExisted = Boolean(db.prepare(`
+  SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'reminder_schedules'
+`).get());
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS children (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    grade TEXT NOT NULL DEFAULT '',
+    photo_url TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS reminder_preferences (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    email_enabled INTEGER NOT NULL DEFAULT 0,
+    push_enabled INTEGER NOT NULL DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subscription_json TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS reminder_deliveries (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reminder_date TEXT NOT NULL,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'push')),
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, reminder_date, channel)
+  );
+
+  CREATE TABLE IF NOT EXISTS reminder_schedules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    time TEXT NOT NULL,
+    reminder_minutes INTEGER NOT NULL DEFAULT 30,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS schedule_reminder_deliveries (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reminder_date TEXT NOT NULL,
+    schedule_id INTEGER NOT NULL,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'push')),
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, reminder_date, schedule_id, channel)
+  );
+`);
+
+if (!reminderSchedulesExisted) {
+  const insertReminderSchedule = db.prepare(`
+    INSERT INTO reminder_schedules (name, time, reminder_minutes)
+    VALUES (?, ?, ?)
+  `);
+  db.transaction(() => {
+    insertReminderSchedule.run('Morning Break', BREAK_TIME, BREAK_REMINDER_MINUTES);
+    insertReminderSchedule.run('Lunch', '12:30', BREAK_REMINDER_MINUTES);
+  })();
+}
+
+const userColumns = db.prepare('PRAGMA table_info(users)').all();
+if (userColumns.some((column) => column.name === 'children')) {
+  const legacyParents = db.prepare(`
+    SELECT id, children FROM users
+    WHERE role IN ('customer', 'parent') AND children IS NOT NULL AND children != ''
+  `).all();
+  const findLegacyChild = db.prepare(`
+    SELECT id FROM children WHERE user_id = ? AND lower(name) = lower(?)
+  `);
+  const addLegacyChild = db.prepare('INSERT INTO children (user_id, name) VALUES (?, ?)');
+  db.transaction(() => {
+    for (const parent of legacyParents) {
+      for (const name of String(parent.children).split(',').map((value) => value.trim()).filter(Boolean)) {
+        if (!findLegacyChild.get(parent.id, name)) addLegacyChild.run(parent.id, name.slice(0, 100));
+      }
+    }
+  })();
+}
+
+const smtpTransporter = process.env.SMTP_HOST && process.env.SMTP_USER &&
+  process.env.SMTP_PASS && process.env.SMTP_FROM
+  ? nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT || 587) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  })
+  : null;
+const sendingReceipts = new Set();
+
+const vapidConfigured = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
+if (vapidConfigured) {
+  webPush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@literacytree.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 // Create demo admin user
 const hashedPassword = bcrypt.hashSync('Admin123!', 10);
@@ -168,6 +298,205 @@ const generateOrderNumber = () => {
   return `LTS-${timestamp}-${random}`;
 };
 
+const isParent = (req, res, next) => {
+  if (!['customer', 'parent'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Parent access required.' });
+  }
+  next();
+};
+
+function isValidZambianPhoneNumber(phoneNumber) {
+  const digits = String(phoneNumber || '').replace(/\D/g, '');
+  return /^(?:(09|07|096|097|095|076|077)\d{7,8}|260(9|7)\d{7,8})$/.test(digits);
+}
+
+function validReminderSchedule(name, time, reminderMinutes) {
+  return typeof name === 'string' && name.trim().length >= 1 && name.trim().length <= 60 &&
+    typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) &&
+    Number.isInteger(Number(reminderMinutes)) && Number(reminderMinutes) >= 1 &&
+    Number(reminderMinutes) <= 180 &&
+    Number(reminderMinutes) <= Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+}
+
+function cloudinaryProfileSignature(timestamp) {
+  const params = `folder=ltscanteen/profiles&timestamp=${timestamp}`;
+  return crypto.createHash('sha1').update(`${params}${process.env.CLOUDINARY_API_SECRET}`).digest('hex');
+}
+
+function createReceiptPdf(order) {
+  return new Promise((resolve, reject) => {
+    const document = new PDFDocument({ size: 'A4', margin: 50 });
+    const chunks = [];
+    document.on('data', (chunk) => chunks.push(chunk));
+    document.on('end', () => resolve(Buffer.concat(chunks)));
+    document.on('error', reject);
+
+    let items;
+    try {
+      items = JSON.parse(order.items);
+    } catch (error) {
+      return reject(new Error(`Order ${order.order_number} has invalid item data.`));
+    }
+
+    document.fontSize(20).fillColor('#1a472a').text('Literacy Tree School Canteen', { align: 'center' });
+    document.moveDown(0.5).fontSize(12).fillColor('#333333')
+      .text(`Receipt for order ${order.order_number}`, { align: 'center' });
+    document.moveDown().fontSize(10)
+      .text(`Parent: ${order.customer_name}`)
+      .text(`Email: ${order.customer_email}`)
+      .text(`Order date: ${order.created_at}`)
+      .text(`Child: ${order.child_name || 'N/A'}`)
+      .text(`Collection date: ${order.scheduled_for || 'As soon as possible'}`)
+      .text(`Payment: ${String(order.payment_status).toUpperCase()}`);
+    document.moveDown().fontSize(12).text('Items', { underline: true });
+
+    for (const item of items) {
+      const quantity = Number(item.quantity || item.qty || 1);
+      const price = Number(item.price || 0);
+      document.fontSize(10).text(
+        `${item.name || item.item || 'Item'} x ${quantity}    ZMW ${(price * quantity).toFixed(2)}`
+      );
+    }
+
+    document.moveDown().fontSize(13).fillColor('#1a472a')
+      .text(`Total: ZMW ${Number(order.total_amount).toFixed(2)}`, { align: 'right' });
+    document.moveDown().fontSize(9).fillColor('#666666')
+      .text('Thank you for your order.', { align: 'center' });
+    document.end();
+  });
+}
+
+async function sendOrderReceipt(orderId) {
+  if (sendingReceipts.has(orderId)) return null;
+  sendingReceipts.add(orderId);
+  try {
+    if (!smtpTransporter) {
+      throw new Error('Receipt email is unavailable until SMTP_HOST, SMTP_USER, SMTP_PASS, and SMTP_FROM are configured.');
+    }
+
+    const order = db.prepare(`
+      SELECT o.*, u.username AS customer_email
+      FROM orders o JOIN users u ON u.id = o.user_id
+      WHERE o.id = ?
+    `).get(orderId);
+    if (!order) throw new Error('Order or parent email address not found.');
+    if (order.payment_status !== 'completed') {
+      throw new Error('A receipt can only be emailed after successful payment.');
+    }
+    if (!order.customer_email) throw new Error('Parent email address is missing.');
+
+    const pdf = await createReceiptPdf(order);
+    await smtpTransporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: order.customer_email,
+      subject: `Receipt for order ${order.order_number}`,
+      text: `Hello ${order.customer_name},\n\nYour payment was successful. Your receipt for order ${order.order_number} is attached.`,
+      attachments: [{
+        filename: `receipt-${order.order_number}.pdf`,
+        content: pdf,
+        contentType: 'application/pdf'
+      }]
+    });
+    db.prepare('UPDATE orders SET receipt_sent_at = CURRENT_TIMESTAMP WHERE id = ?').run(orderId);
+    return order.customer_email;
+  } finally {
+    sendingReceipts.delete(orderId);
+  }
+}
+
+function getSchoolClock() {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: SCHOOL_TIME_ZONE,
+    weekday: 'short',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(new Date()).reduce((result, part) => {
+    result[part.type] = part.value;
+    return result;
+  }, {});
+  return parts;
+}
+
+async function deliverBreakReminders() {
+  const clock = getSchoolClock();
+  if (clock.weekday === 'Sat' || clock.weekday === 'Sun') return;
+
+  const currentMinutes = Number(clock.hour) * 60 + Number(clock.minute);
+  const date = `${clock.year}-${clock.month}-${clock.day}`;
+  const schedules = db.prepare(`
+    SELECT id, name, time, reminder_minutes FROM reminder_schedules
+    WHERE enabled = 1
+  `).all();
+  const dueSchedules = schedules.filter((schedule) => {
+    const [hour, minute] = schedule.time.split(':').map(Number);
+    const reminderMinute = hour * 60 + minute - schedule.reminder_minutes;
+    return currentMinutes >= reminderMinute && currentMinutes <= reminderMinute + 4;
+  });
+  if (!dueSchedules.length) return;
+
+  const users = db.prepare(`
+    SELECT u.id, u.username, u.full_name, p.email_enabled, p.push_enabled
+    FROM reminder_preferences p JOIN users u ON u.id = p.user_id
+    WHERE u.role IN ('customer', 'parent')
+  `).all();
+  const wasDelivered = db.prepare(`
+    SELECT 1 FROM schedule_reminder_deliveries
+    WHERE user_id = ? AND reminder_date = ? AND schedule_id = ? AND channel = ?
+  `);
+  const recordDelivery = db.prepare(`
+    INSERT OR IGNORE INTO schedule_reminder_deliveries
+      (user_id, reminder_date, schedule_id, channel) VALUES (?, ?, ?, ?)
+  `);
+
+  for (const schedule of dueSchedules) {
+    for (const user of users) {
+      if (user.email_enabled && smtpTransporter &&
+        !wasDelivered.get(user.id, date, schedule.id, 'email')) {
+        try {
+          await smtpTransporter.sendMail({
+            from: process.env.SMTP_FROM,
+            to: user.username,
+            subject: `${schedule.name} is coming up`,
+            text: `Hello ${user.full_name || 'Parent'}, ${schedule.name.toLowerCase()} starts in ${schedule.reminder_minutes} minutes at ${schedule.time}. You can place a meal order for your child in the Literacy Tree School Canteen.`
+          });
+          recordDelivery.run(user.id, date, schedule.id, 'email');
+        } catch (error) {
+          console.error(`${schedule.name} reminder email failed for parent ${user.id}:`, error);
+        }
+      }
+
+      if (user.push_enabled && vapidConfigured &&
+        !wasDelivered.get(user.id, date, schedule.id, 'push')) {
+        const subscriptions = db.prepare(
+          'SELECT endpoint, subscription_json FROM push_subscriptions WHERE user_id = ?'
+        ).all(user.id);
+        let delivered = false;
+        for (const subscription of subscriptions) {
+          try {
+            await webPush.sendNotification(JSON.parse(subscription.subscription_json), JSON.stringify({
+              title: `${schedule.name} is coming up`,
+              body: `${schedule.name} starts in ${schedule.reminder_minutes} minutes at ${schedule.time}. Order a meal for your child.`,
+              url: '/'
+            }));
+            delivered = true;
+          } catch (error) {
+            if (error.statusCode === 404 || error.statusCode === 410) {
+              db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(subscription.endpoint);
+            } else {
+              console.error(`${schedule.name} push reminder failed for parent ${user.id}:`, error);
+            }
+          }
+        }
+        if (delivered) recordDelivery.run(user.id, date, schedule.id, 'push');
+      }
+    }
+  }
+}
+
 async function initiateZynlePayment(orderNumber, amount, phoneNumber, orderId) {
   const formattedPhone = phoneNumber.replace(/\D/g, '');
   const transactionId = crypto.randomUUID();
@@ -246,6 +575,12 @@ async function initiateZynlePayment(orderNumber, amount, phoneNumber, orderId) {
 
     const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
     updateOrder.run(orderId);
+    const completedOrder = db.prepare('SELECT user_id, receipt_sent_at FROM orders WHERE id = ?').get(orderId);
+    if (completedOrder?.user_id && !completedOrder.receipt_sent_at && smtpTransporter) {
+      sendOrderReceipt(orderId).catch((error) => {
+        console.error(`Receipt email failed for completed order ${orderNumber}:`, error);
+      });
+    }
   }, 3000);
 
   return {
@@ -271,6 +606,9 @@ app.post('/api/register', [
   }
 
   const { username, password, full_name, phone } = req.body;
+  const children = typeof req.body.children === 'string'
+    ? req.body.children.split(',').map((name) => name.trim()).filter(Boolean)
+    : [];
 
   try {
     // Check if user already exists
@@ -289,7 +627,15 @@ app.post('/api/register', [
     const insertUser = db.prepare(
       'INSERT INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)'
     );
-    const result = insertUser.run(username, hashedPassword, full_name || '', phone || '', 'customer');
+    const result = db.transaction(() => {
+      const account = insertUser.run(username, hashedPassword, full_name || '', phone || '', 'customer');
+      const insertChild = db.prepare('INSERT INTO children (user_id, name) VALUES (?, ?)');
+      for (const childName of children.slice(0, 20)) {
+        insertChild.run(account.lastInsertRowid, childName.slice(0, 100));
+      }
+      db.prepare('INSERT OR IGNORE INTO reminder_preferences (user_id) VALUES (?)').run(account.lastInsertRowid);
+      return account;
+    })();
     
     // Generate JWT
     const token = jwt.sign(
@@ -392,6 +738,333 @@ app.get('/api/me', authenticateToken, (req, res) => {
   }
 });
 
+app.get('/api/profile', authenticateToken, isParent, (req, res) => {
+  try {
+    db.prepare('INSERT OR IGNORE INTO reminder_preferences (user_id) VALUES (?)').run(req.user.id);
+    const user = db.prepare(`
+      SELECT id, username, full_name, phone, profile_image_url, role
+      FROM users WHERE id = ?
+    `).get(req.user.id);
+    const children = db.prepare(`
+      SELECT id, name, grade, photo_url FROM children
+      WHERE user_id = ? ORDER BY id
+    `).all(req.user.id);
+    const preferences = db.prepare(`
+      SELECT email_enabled, push_enabled FROM reminder_preferences WHERE user_id = ?
+    `).get(req.user.id);
+    res.json({ ...user, children, reminders: preferences });
+  } catch (error) {
+    console.error('Parent profile fetch error:', error);
+    res.status(500).json({ error: 'Unable to load parent profile.' });
+  }
+});
+
+app.post('/api/profile/upload-signature', authenticateToken, isParent, (req, res) => {
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    return res.status(503).json({ error: 'Profile photo uploads are not configured. Contact the administrator.' });
+  }
+  const timestamp = Math.floor(Date.now() / 1000);
+  res.json({
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    apiKey: CLOUDINARY_API_KEY,
+    timestamp,
+    folder: 'ltscanteen/profiles',
+    signature: cloudinaryProfileSignature(timestamp)
+  });
+});
+
+function isAllowedProfileImage(imageUrl) {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  return Boolean(cloudName) && typeof imageUrl === 'string' && imageUrl.length <= 2000 &&
+    /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//.test(imageUrl) &&
+    imageUrl.startsWith(`https://res.cloudinary.com/${cloudName}/image/upload/`);
+}
+
+app.put('/api/parent-profile', authenticateToken, isParent, [
+  body('full_name').optional().isString().trim().isLength({ min: 1, max: 100 }),
+  body('phone').optional().isString().trim().isLength({ max: 30 }),
+  body('profile_image_url').optional().isString().isLength({ max: 2000 })
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const updates = [];
+  const params = [];
+  if (req.body.full_name !== undefined) {
+    updates.push('full_name = ?');
+    params.push(req.body.full_name.trim());
+  }
+  if (req.body.phone !== undefined) {
+    updates.push('phone = ?');
+    params.push(req.body.phone.trim());
+  }
+  if (req.body.profile_image_url !== undefined) {
+    if (!isAllowedProfileImage(req.body.profile_image_url)) {
+      return res.status(400).json({ error: 'Please upload a valid profile photo.' });
+    }
+    updates.push('profile_image_url = ?');
+    params.push(req.body.profile_image_url);
+  }
+  if (!updates.length) return res.status(400).json({ error: 'No profile fields were provided.' });
+
+  try {
+    params.push(req.user.id);
+    db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    res.json({ message: 'Profile updated successfully.' });
+  } catch (error) {
+    console.error('Parent profile update error:', error);
+    res.status(500).json({ error: 'Unable to update parent profile.' });
+  }
+});
+
+app.post('/api/children', authenticateToken, isParent, [
+  body('name').isString().trim().isLength({ min: 1, max: 100 }),
+  body('grade').isString().trim().isLength({ min: 1, max: 50 }),
+  body('photo_url').optional().isString().isLength({ max: 2000 })
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (req.body.photo_url && !isAllowedProfileImage(req.body.photo_url)) {
+    return res.status(400).json({ error: 'Please upload a valid child photo.' });
+  }
+  try {
+    const childCount = db.prepare('SELECT COUNT(*) AS count FROM children WHERE user_id = ?').get(req.user.id).count;
+    if (childCount >= 20) return res.status(409).json({ error: 'A parent profile can have up to 20 children.' });
+    const result = db.prepare(`
+      INSERT INTO children (user_id, name, grade, photo_url) VALUES (?, ?, ?, ?)
+    `).run(req.user.id, req.body.name.trim(), (req.body.grade || '').trim(), req.body.photo_url || null);
+    res.status(201).json({
+      id: result.lastInsertRowid,
+      name: req.body.name.trim(),
+      grade: (req.body.grade || '').trim(),
+      photo_url: req.body.photo_url || null
+    });
+  } catch (error) {
+    console.error('Child profile creation error:', error);
+    res.status(500).json({ error: 'Unable to add child profile.' });
+  }
+});
+
+app.put('/api/children/:childId', authenticateToken, isParent, [
+  body('name').optional().isString().trim().isLength({ min: 1, max: 100 }),
+  body('grade').optional().isString().trim().isLength({ min: 1, max: 50 }),
+  body('photo_url').optional().isString().isLength({ max: 2000 })
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const childId = Number(req.params.childId);
+  if (!Number.isInteger(childId) || childId <= 0) return res.status(400).json({ error: 'Invalid child ID.' });
+  if (req.body.photo_url && !isAllowedProfileImage(req.body.photo_url)) {
+    return res.status(400).json({ error: 'Please upload a valid child photo.' });
+  }
+  const fields = ['name', 'grade', 'photo_url'].filter((field) => req.body[field] !== undefined);
+  if (!fields.length) return res.status(400).json({ error: 'No child profile fields were provided.' });
+  try {
+    const result = db.prepare(`
+      UPDATE children SET ${fields.map((field) => `${field} = ?`).join(', ')},
+        updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?
+    `).run(...fields.map((field) => {
+      const value = req.body[field];
+      return field === 'photo_url' ? value : (value || '').trim();
+    }), childId, req.user.id);
+    if (!result.changes) return res.status(404).json({ error: 'Child profile not found.' });
+    res.json({ message: 'Child profile updated successfully.' });
+  } catch (error) {
+    console.error('Child profile update error:', error);
+    res.status(500).json({ error: 'Unable to update child profile.' });
+  }
+});
+
+app.delete('/api/children/:childId', authenticateToken, isParent, (req, res) => {
+  const childId = Number(req.params.childId);
+  if (!Number.isInteger(childId) || childId <= 0) return res.status(400).json({ error: 'Invalid child ID.' });
+  const result = db.prepare('DELETE FROM children WHERE id = ? AND user_id = ?').run(childId, req.user.id);
+  if (!result.changes) return res.status(404).json({ error: 'Child profile not found.' });
+  res.status(204).end();
+});
+
+app.get('/api/push/config', (req, res) => {
+  res.json({
+    enabled: vapidConfigured,
+    publicKey: vapidConfigured ? process.env.VAPID_PUBLIC_KEY : null,
+    emailConfigured: Boolean(smtpTransporter),
+    schedules: db.prepare(`
+      SELECT id, name, time, reminder_minutes FROM reminder_schedules
+      WHERE enabled = 1 ORDER BY time, id
+    `).all()
+  });
+});
+
+app.post('/api/push/subscriptions', authenticateToken, isParent, (req, res) => {
+  if (!vapidConfigured) return res.status(503).json({ error: 'Browser push notifications are not configured.' });
+  const subscription = req.body;
+  let endpointHost = '';
+  try {
+    endpointHost = new URL(subscription?.endpoint).hostname;
+  } catch (error) {
+    return res.status(400).json({ error: 'Invalid browser push subscription.' });
+  }
+  const trustedPushHost = ['fcm.googleapis.com', 'updates.push.services.mozilla.com', 'web.push.apple.com']
+    .includes(endpointHost) || endpointHost.endsWith('.notify.windows.com');
+  if (!trustedPushHost || typeof subscription?.keys?.p256dh !== 'string' ||
+    typeof subscription?.keys?.auth !== 'string') {
+    return res.status(400).json({ error: 'Invalid browser push subscription.' });
+  }
+  try {
+    db.prepare(`
+      INSERT INTO push_subscriptions (endpoint, user_id, subscription_json)
+      VALUES (?, ?, ?)
+      ON CONFLICT(endpoint) DO UPDATE SET user_id = excluded.user_id,
+        subscription_json = excluded.subscription_json
+    `).run(subscription.endpoint, req.user.id, JSON.stringify(subscription));
+    res.status(201).json({ message: 'Browser notifications enabled.' });
+  } catch (error) {
+    console.error('Push subscription save error:', error);
+    res.status(500).json({ error: 'Unable to enable browser notifications.' });
+  }
+});
+
+app.delete('/api/push/subscriptions', authenticateToken, isParent, (req, res) => {
+  const endpoint = req.body?.endpoint;
+  if (typeof endpoint !== 'string') return res.status(400).json({ error: 'Push endpoint is required.' });
+  db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ? AND user_id = ?').run(endpoint, req.user.id);
+  res.status(204).end();
+});
+
+app.put('/api/reminder-preferences', authenticateToken, isParent, [
+  body('email_enabled').isBoolean(),
+  body('push_enabled').isBoolean()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (req.body.push_enabled && !vapidConfigured) {
+    return res.status(503).json({ error: 'Browser push notifications are not configured.' });
+  }
+  try {
+    db.prepare(`
+      INSERT INTO reminder_preferences (user_id, email_enabled, push_enabled, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id) DO UPDATE SET email_enabled = excluded.email_enabled,
+        push_enabled = excluded.push_enabled, updated_at = CURRENT_TIMESTAMP
+    `).run(req.user.id, Number(req.body.email_enabled), Number(req.body.push_enabled));
+    res.json({ message: 'Reminder preferences saved.' });
+  } catch (error) {
+    console.error('Reminder preference update error:', error);
+    res.status(500).json({ error: 'Unable to save reminder preferences.' });
+  }
+});
+
+app.get('/api/admin/reminder-schedules', authenticateToken, isAdmin, (req, res) => {
+  const schedules = db.prepare(`
+    SELECT id, name, time, reminder_minutes, enabled
+    FROM reminder_schedules ORDER BY time, id
+  `).all();
+  res.json(schedules.map((schedule) => ({ ...schedule, enabled: Boolean(schedule.enabled) })));
+});
+
+app.post('/api/admin/reminder-schedules', authenticateToken, isAdmin, [
+  body('name').isString().trim().isLength({ min: 1, max: 60 }),
+  body('time').matches(/^([01]\d|2[0-3]):[0-5]\d$/),
+  body('reminder_minutes').isInt({ min: 1, max: 180 }),
+  body('enabled').optional().isBoolean()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!validReminderSchedule(req.body.name, req.body.time, Number(req.body.reminder_minutes))) {
+    return res.status(400).json({
+      error: 'Reminder lead time must be 1-180 minutes and cannot cross into the previous day.'
+    });
+  }
+  try {
+    const result = db.prepare(`
+      INSERT INTO reminder_schedules (name, time, reminder_minutes, enabled)
+      VALUES (?, ?, ?, ?)
+    `).run(req.body.name.trim(), req.body.time, Number(req.body.reminder_minutes),
+      req.body.enabled === undefined || req.body.enabled ? 1 : 0);
+    res.status(201).json({
+      id: result.lastInsertRowid,
+      name: req.body.name.trim(),
+      time: req.body.time,
+      reminder_minutes: Number(req.body.reminder_minutes),
+      enabled: req.body.enabled === undefined || Boolean(req.body.enabled)
+    });
+  } catch (error) {
+    console.error('Reminder schedule creation error:', error);
+    res.status(500).json({ error: 'Unable to create reminder schedule.' });
+  }
+});
+
+app.put('/api/admin/reminder-schedules/:scheduleId', authenticateToken, isAdmin, [
+  body('name').optional().isString().trim().isLength({ min: 1, max: 60 }),
+  body('time').optional().matches(/^([01]\d|2[0-3]):[0-5]\d$/),
+  body('reminder_minutes').optional().isInt({ min: 1, max: 180 }),
+  body('enabled').optional().isBoolean()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const scheduleId = Number(req.params.scheduleId);
+  if (!Number.isInteger(scheduleId) || scheduleId <= 0) {
+    return res.status(400).json({ error: 'Invalid reminder schedule ID.' });
+  }
+
+  const fields = [];
+  const values = [];
+  if (req.body.name !== undefined) {
+    fields.push('name = ?');
+    values.push(req.body.name.trim());
+  }
+  if (req.body.time !== undefined) {
+    fields.push('time = ?');
+    values.push(req.body.time);
+  }
+  if (req.body.reminder_minutes !== undefined) {
+    fields.push('reminder_minutes = ?');
+    values.push(Number(req.body.reminder_minutes));
+  }
+  if (req.body.enabled !== undefined) {
+    fields.push('enabled = ?');
+    values.push(req.body.enabled ? 1 : 0);
+  }
+  if (!fields.length) return res.status(400).json({ error: 'No reminder schedule fields were provided.' });
+
+  try {
+    const existing = db.prepare(`
+      SELECT name, time, reminder_minutes FROM reminder_schedules WHERE id = ?
+    `).get(scheduleId);
+    if (!existing) return res.status(404).json({ error: 'Reminder schedule not found.' });
+    const nextName = req.body.name === undefined ? existing.name : req.body.name;
+    const nextTime = req.body.time === undefined ? existing.time : req.body.time;
+    const nextLead = req.body.reminder_minutes === undefined
+      ? existing.reminder_minutes : Number(req.body.reminder_minutes);
+    if (!validReminderSchedule(nextName, nextTime, nextLead)) {
+      return res.status(400).json({
+        error: 'Reminder lead time must be 1-180 minutes and cannot cross into the previous day.'
+      });
+    }
+    values.push(scheduleId);
+    const result = db.prepare(`
+      UPDATE reminder_schedules SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(...values);
+    if (!result.changes) return res.status(404).json({ error: 'Reminder schedule not found.' });
+    res.json({ message: 'Reminder schedule updated.' });
+  } catch (error) {
+    console.error('Reminder schedule update error:', error);
+    res.status(500).json({ error: 'Unable to update reminder schedule.' });
+  }
+});
+
+app.delete('/api/admin/reminder-schedules/:scheduleId', authenticateToken, isAdmin, (req, res) => {
+  const scheduleId = Number(req.params.scheduleId);
+  if (!Number.isInteger(scheduleId) || scheduleId <= 0) {
+    return res.status(400).json({ error: 'Invalid reminder schedule ID.' });
+  }
+  const result = db.prepare('DELETE FROM reminder_schedules WHERE id = ?').run(scheduleId);
+  if (!result.changes) return res.status(404).json({ error: 'Reminder schedule not found.' });
+  res.status(204).end();
+});
+
 // Update user profile
 app.put('/api/profile', authenticateToken, [
   body('full_name').optional().isString(),
@@ -478,8 +1151,7 @@ app.post('/create-checkout-session', async (req, res) => {
     if (!paymentMethod || paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
 
-    const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
-    if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
+    if (!isValidZambianPhoneNumber(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
 
     let order;
     try {
@@ -525,16 +1197,30 @@ app.post('/create-checkout-session', async (req, res) => {
 // Protected order creation - requires authentication
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const { items, paymentMethod, phoneNumber, customerName } = req.body;
+    const { items, paymentMethod, phoneNumber, customerName, childId, scheduledFor } = req.body;
     const userId = req.user.id;
     
     if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
     if (paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
     
-    const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
-    if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
-    
+    if (!isValidZambianPhoneNumber(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
+
+    const child = db.prepare('SELECT id, name FROM children WHERE id = ? AND user_id = ?')
+      .get(Number(childId), userId);
+    if (!child) return res.status(400).json({ error: 'Choose a child from your parent profile.' });
+    const today = getSchoolClock();
+    const todayString = `${today.year}-${today.month}-${today.day}`;
+    const orderDate = typeof scheduledFor === 'string' ? scheduledFor : '';
+    const parsedOrderDate = new Date(`${orderDate}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(orderDate) ||
+      Number.isNaN(parsedOrderDate.getTime()) ||
+      parsedOrderDate.toISOString().slice(0, 10) !== orderDate ||
+      orderDate < todayString ||
+      orderDate > new Date(Date.parse(`${todayString}T00:00:00Z`) + 14 * 86400000).toISOString().slice(0, 10)) {
+      return res.status(400).json({ error: 'Choose an order date between today and 14 days from now.' });
+    }
+
     let order;
     try {
       order = resolveOrderItems(db, items);
@@ -544,9 +1230,15 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     const total = order.total;
     const orderNumber = generateOrderNumber();
     
-    const insertOrder = db.prepare(`INSERT INTO orders (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    const info = insertOrder.run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const insertOrder = db.prepare(`INSERT INTO orders
+      (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method,
+       payment_status, msisdn, status, child_id, child_name, scheduled_for)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    const info = insertOrder.run(
+      orderNumber, userId, customerName || req.user.username, phoneNumber,
+      JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending',
+      child.id, child.name, orderDate
+    );
     const orderId = info.lastInsertRowid;
     
     try {
@@ -582,8 +1274,7 @@ app.post('/api/guest-checkout', async (req, res) => {
     if (paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
     
-    const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
-    if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
+    if (!isValidZambianPhoneNumber(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
     
     let order;
     try {
@@ -632,6 +1323,12 @@ app.get('/api/payment-status/:orderNumber', async (req, res) => {
 
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
+  if (order.payment_status === 'completed' && !order.receipt_sent_at && smtpTransporter) {
+    sendOrderReceipt(order.id).catch((error) => {
+      console.error(`Receipt email failed for order ${order.order_number}:`, error);
+    });
+  }
+
   res.json({
     orderNumber: order.order_number,
     totalAmount: order.total_amount,
@@ -647,22 +1344,37 @@ app.post('/api/payments/zynle-callback', express.json(), async (req, res) => {
     const transactionId = callbackData.transactionId || callbackData.reference || callbackData.paymentId || callbackData.data?.transactionId || callbackData.id;
 
     if (transactionId && ['SUCCESS', 'PAID', 'COMPLETED', 'APPROVED'].includes(status)) {
-      const updatePayment = db.prepare(`UPDATE payments SET status = 'completed', callback_data = ? WHERE transaction_id = ? OR reference = ?`);
-      updatePayment.run(JSON.stringify(callbackData), transactionId, transactionId);
-
-      const updateOrder = db.prepare(`UPDATE orders SET payment_status = 'completed', status = 'confirmed', updated_at = CURRENT_TIMESTAMP 
-                                     WHERE id = (SELECT order_id FROM payments WHERE transaction_id = ? OR reference = ?)`);
-      updateOrder.run(transactionId, transactionId);
+      const completedOrder = db.transaction(() => {
+        const payment = db.prepare(`
+          SELECT order_id FROM payments WHERE transaction_id = ? OR reference = ?
+        `).get(transactionId, transactionId);
+        if (!payment) return null;
+        db.prepare(`
+          UPDATE payments SET status = 'completed', callback_data = ?
+          WHERE transaction_id = ? OR reference = ?
+        `).run(JSON.stringify(callbackData), transactionId, transactionId);
+        db.prepare(`
+          UPDATE orders SET payment_status = 'completed', status = 'confirmed',
+            updated_at = CURRENT_TIMESTAMP WHERE id = ?
+        `).run(payment.order_id);
+        return db.prepare('SELECT id, receipt_sent_at FROM orders WHERE id = ?').get(payment.order_id);
+      })();
+      if (completedOrder && !completedOrder.receipt_sent_at && smtpTransporter) {
+        sendOrderReceipt(completedOrder.id).catch((error) => {
+          console.error(`Receipt email failed for completed order ${completedOrder.id}:`, error);
+        });
+      }
     }
 
     res.json({ status: 'received' });
   } catch (error) {
-    res.status(200).json({ status: 'error' });
+    console.error('Zynle payment callback processing error:', error);
+    res.status(500).json({ error: 'Payment callback processing failed.' });
   }
 });
 
 // Get user's orders
-app.get('/api/my-orders', authenticateToken, (req, res) => {
+app.get(['/api/my-orders', '/api/orders'], authenticateToken, (req, res) => {
   try {
     const getOrders = db.prepare(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`);
     const orders = getOrders.all(req.user.id);
@@ -862,9 +1574,32 @@ app.put('/api/admin/menu/changes/:changeId/review', authenticateToken, isAdmin, 
 });
 
 app.get('/api/admin/orders', authenticateToken, isStaffOrAdmin, (req, res) => {
-  const getOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC`);
-  const orders = getOrders.all();
+  const getOrders = db.prepare(`
+    SELECT o.*, CASE WHEN ? = 'admin' THEN u.username ELSE NULL END AS customer_email
+    FROM orders o LEFT JOIN users u ON u.id = o.user_id
+    ORDER BY o.created_at DESC
+  `);
+  const orders = getOrders.all(req.user.role);
   res.json(orders);
+});
+
+app.post('/api/admin/orders/:orderId/resend-receipt', authenticateToken, isAdmin, async (req, res) => {
+  const orderId = Number(req.params.orderId);
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({ error: 'Invalid order ID.' });
+  }
+  const order = db.prepare('SELECT order_number, payment_status FROM orders WHERE id = ?').get(orderId);
+  if (!order) return res.status(404).json({ error: 'Order not found.' });
+  if (order.payment_status !== 'completed') {
+    return res.status(409).json({ error: 'Only successfully paid orders can receive a receipt.' });
+  }
+  try {
+    const email = await sendOrderReceipt(orderId);
+    res.json({ message: 'Receipt resent successfully.', email });
+  } catch (error) {
+    console.error(`Admin receipt resend failed for order ${order.order_number}:`, error);
+    res.status(smtpTransporter ? 502 : 503).json({ error: error.message || 'Unable to resend receipt.' });
+  }
 });
 
 app.post('/api/admin/staff', authenticateToken, isAdmin, [
@@ -978,4 +1713,28 @@ app.listen(PORT, () => {
 ║   🔐 Authentication: JWT enabled                     ║
 ╚═══════════════════════════════════════════════════════╝
   `);
+});
+
+if (!smtpTransporter) {
+  console.warn('SMTP is not configured; order receipts and email reminders are disabled.');
+}
+if (!vapidConfigured) {
+  console.warn('VAPID keys are not configured; browser push reminders are disabled.');
+}
+
+let reminderCheckRunning = false;
+const reminderInterval = setInterval(async () => {
+  if (reminderCheckRunning) return;
+  reminderCheckRunning = true;
+  try {
+    await deliverBreakReminders();
+  } catch (error) {
+    console.error('Break reminder scheduler failed:', error);
+  } finally {
+    reminderCheckRunning = false;
+  }
+}, 60 * 1000);
+reminderInterval.unref();
+deliverBreakReminders().catch((error) => {
+  console.error('Initial break reminder check failed:', error);
 });

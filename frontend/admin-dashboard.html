@@ -581,6 +581,45 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Reminder Settings Tab -->
+            <div id="settings-tab" class="tab-content" style="display: none;">
+                <div class="orders-table-container">
+                    <div class="orders-table-header">
+                        <div>
+                            <h3>Break, lunch &amp; meal reminders</h3>
+                            <p class="text-sm" style="color:var(--text-light)">Set times and lead time for parent email and browser reminders.</p>
+                        </div>
+                    </div>
+                    <form id="reminderScheduleForm" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <input id="reminderScheduleId" type="hidden">
+                        <label class="text-sm font-medium">Name
+                            <input id="reminderScheduleName" class="form-control" maxlength="60" placeholder="Afternoon snack" required>
+                        </label>
+                        <label class="text-sm font-medium">Time
+                            <input id="reminderScheduleTime" class="form-control" type="time" required>
+                        </label>
+                        <label class="text-sm font-medium">Remind parents (minutes before)
+                            <input id="reminderLeadMinutes" class="form-control" type="number" min="1" max="180" value="30" required>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium">
+                            <input id="reminderScheduleEnabled" type="checkbox" checked>
+                            Schedule is active
+                        </label>
+                        <div class="sm:col-span-2 lg:col-span-4 flex flex-wrap gap-3">
+                            <button class="btn btn-primary" type="submit" id="saveReminderScheduleButton">Add reminder time</button>
+                            <button class="btn" type="button" onclick="resetReminderScheduleForm()">Clear form</button>
+                        </div>
+                    </form>
+                    <div id="reminderScheduleStatus" class="text-sm mb-4" role="status" style="color:var(--text-light)"></div>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead><tr><th>Reminder</th><th>Time</th><th>Notice</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="reminderSchedulesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -605,6 +644,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData();
             setupEventListeners();
+            if (window.location.hash === '#settings') {
+                document.querySelector('.nav-item[data-tab="settings"]')?.click();
+            }
         });
 
         function setupEventListeners() {
@@ -621,6 +663,7 @@
                     if (tab === 'orders') loadAllOrders();
                     if (tab === 'menu-management') loadMenuItems();
                     if (tab === 'users') loadUsers();
+                    if (tab === 'settings') loadReminderSchedules();
                 });
             });
 
@@ -632,6 +675,7 @@
             // Search and filter
             document.getElementById('orderSearch')?.addEventListener('input', filterOrders);
             document.getElementById('orderStatusFilter')?.addEventListener('change', filterOrders);
+            document.getElementById('reminderScheduleForm')?.addEventListener('submit', saveReminderSchedule);
         }
 
         async function loadDashboardData() {
@@ -688,6 +732,8 @@
         function renderOrdersTable(orders, tbodyId) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
+            const sessionUser = JSON.parse(localStorage.getItem('ltUser') || 'null');
+            const canResendReceipts = sessionUser?.role === 'admin';
             
             tbody.innerHTML = orders.map(order => `
                 <tr>
@@ -700,7 +746,9 @@
                     <td>${new Date(order.created_at).toLocaleString()}</td>
                     <td class="action-buttons">
                         <button class="action-btn btn-view" onclick="viewOrder(${order.id})"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn btn-edit" onclick="editOrder(${order.id})"><i class="fas fa-edit"></i></button>
+                        ${canResendReceipts && order.payment_status === 'completed'
+                            ? `<button class="action-btn btn-edit" title="Resend receipt to ${order.customer_email || 'parent'}" onclick="resendReceipt(${order.id})"><i class="fas fa-envelope"></i> Resend</button>`
+                            : ''}
                     </td>
                 </tr>
             `).join('');
@@ -734,6 +782,7 @@
             document.getElementById('orderDetails').innerHTML = `
                 <p><strong>Order #:</strong> ${order.order_number}</p>
                 <p><strong>Customer:</strong> ${order.customer_name}</p>
+                <p><strong>Email:</strong> ${order.customer_email || 'Not available'}</p>
                 <p><strong>Phone:</strong> ${order.customer_phone}</p>
                 <p><strong>Amount:</strong> K${order.total_amount}</p>
                 <p><strong>Payment Method:</strong> ${order.payment_method.toUpperCase()}</p>
@@ -741,8 +790,138 @@
                 <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
                 <h4>Items:</h4>
                 ${items.map(item => `<div class="order-detail-item">${item.name} x ${item.quantity} = K${item.price * item.quantity}</div>`).join('')}
+                ${JSON.parse(localStorage.getItem('ltUser') || 'null')?.role === 'admin' && order.payment_status === 'completed'
+                    ? `<button class="btn btn-primary" style="margin:12px 0" onclick="resendReceipt(${order.id})"><i class="fas fa-envelope"></i> Resend receipt to parent</button>`
+                    : ''}
             `;
             document.getElementById('orderModal').classList.add('active');
+        }
+
+        async function resendReceipt(orderId) {
+            if (!window.confirm('Resend this receipt to the parent email on the order?')) return;
+            try {
+                const response = await window.ltApiFetch(`/api/admin/orders/${orderId}/resend-receipt`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Unable to resend receipt.');
+                window.alert(`Receipt sent to ${result.email}.`);
+                await loadAllOrders();
+            } catch (error) {
+                console.error('Receipt resend failed:', error);
+                window.alert(error.message || 'Unable to resend receipt.');
+            }
+        }
+
+        async function loadReminderSchedules() {
+            const status = document.getElementById('reminderScheduleStatus');
+            const body = document.getElementById('reminderSchedulesBody');
+            status.textContent = 'Loading reminder schedules...';
+            try {
+                const response = await window.ltApiFetch('/api/admin/reminder-schedules');
+                const schedules = await response.json();
+                if (!response.ok) throw new Error(schedules.error || 'Unable to load reminder schedules.');
+                body.innerHTML = schedules.map(schedule => `
+                    <tr>
+                        <td>${escapeHtml(schedule.name)}</td>
+                        <td>${escapeHtml(schedule.time)}</td>
+                        <td>${Number(schedule.reminder_minutes)} minutes before</td>
+                        <td>${schedule.enabled ? 'Active' : 'Paused'}</td>
+                        <td class="action-buttons">
+                            <button class="action-btn btn-edit" onclick="editReminderSchedule(${Number(schedule.id)})">Edit</button>
+                            <button class="action-btn btn-edit" onclick="toggleReminderSchedule(${Number(schedule.id)},${schedule.enabled ? 'false' : 'true'})">${schedule.enabled ? 'Pause' : 'Enable'}</button>
+                            <button class="action-btn" onclick="deleteReminderSchedule(${Number(schedule.id)})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="5">No meal reminders yet. Add a time above.</td></tr>';
+                status.textContent = 'Parents who opted in will be notified by their selected channels on weekdays.';
+            } catch (error) {
+                status.textContent = error.message || 'Unable to load reminder schedules.';
+            }
+        }
+
+        async function saveReminderSchedule(event) {
+            event.preventDefault();
+            const scheduleId = document.getElementById('reminderScheduleId').value;
+            const payload = {
+                name: document.getElementById('reminderScheduleName').value.trim(),
+                time: document.getElementById('reminderScheduleTime').value,
+                reminder_minutes: Number(document.getElementById('reminderLeadMinutes').value),
+                enabled: document.getElementById('reminderScheduleEnabled').checked
+            };
+            try {
+                const response = await window.ltApiFetch(
+                    scheduleId ? `/api/admin/reminder-schedules/${scheduleId}` : '/api/admin/reminder-schedules',
+                    { method: scheduleId ? 'PUT' : 'POST', body: JSON.stringify(payload) }
+                );
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Unable to save reminder schedule.');
+                resetReminderScheduleForm();
+                await loadReminderSchedules();
+            } catch (error) {
+                document.getElementById('reminderScheduleStatus').textContent = error.message;
+            }
+        }
+
+        async function editReminderSchedule(scheduleId) {
+            try {
+                const response = await window.ltApiFetch('/api/admin/reminder-schedules');
+                const schedules = await response.json();
+                if (!response.ok) throw new Error(schedules.error || 'Unable to load schedules.');
+                const schedule = schedules.find(item => Number(item.id) === Number(scheduleId));
+                if (!schedule) throw new Error('Reminder schedule not found.');
+                document.getElementById('reminderScheduleId').value = schedule.id;
+                document.getElementById('reminderScheduleName').value = schedule.name;
+                document.getElementById('reminderScheduleTime').value = schedule.time;
+                document.getElementById('reminderLeadMinutes').value = schedule.reminder_minutes;
+                document.getElementById('reminderScheduleEnabled').checked = Boolean(schedule.enabled);
+                document.getElementById('saveReminderScheduleButton').textContent = 'Save changes';
+                document.getElementById('reminderScheduleName').focus();
+            } catch (error) {
+                document.getElementById('reminderScheduleStatus').textContent = error.message;
+            }
+        }
+
+        async function toggleReminderSchedule(scheduleId, enabled) {
+            try {
+                const response = await window.ltApiFetch(`/api/admin/reminder-schedules/${scheduleId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ enabled })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Unable to update reminder schedule.');
+                await loadReminderSchedules();
+            } catch (error) {
+                document.getElementById('reminderScheduleStatus').textContent = error.message;
+            }
+        }
+
+        async function deleteReminderSchedule(scheduleId) {
+            if (!window.confirm('Delete this reminder time?')) return;
+            try {
+                const response = await window.ltApiFetch(`/api/admin/reminder-schedules/${scheduleId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.error || 'Unable to delete reminder schedule.');
+                }
+                await loadReminderSchedules();
+            } catch (error) {
+                document.getElementById('reminderScheduleStatus').textContent = error.message;
+            }
+        }
+
+        function resetReminderScheduleForm() {
+            document.getElementById('reminderScheduleForm').reset();
+            document.getElementById('reminderScheduleId').value = '';
+            document.getElementById('reminderLeadMinutes').value = 30;
+            document.getElementById('reminderScheduleEnabled').checked = true;
+            document.getElementById('saveReminderScheduleButton').textContent = 'Add reminder time';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[character]);
         }
 
         function closeOrderModal() {

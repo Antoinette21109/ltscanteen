@@ -8,6 +8,9 @@ A web application for ordering food from the school canteen with integrated paym
 - Add items to cart
 - Zynle-only payment integration
 - Secure payment callbacks and order confirmation
+- Parent and child profiles with Cloudinary photo uploads and child grades
+- Scheduled meal orders and configurable email/browser break reminders
+- Payment receipts emailed as PDF attachments, with admin resend controls
 
 ## Prerequisites
 
@@ -53,7 +56,40 @@ Role and approval checks are enforced by the backend.
 
 Food images are uploaded directly to Cloudinary using short-lived signatures
 issued by the backend. Configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
-and `CLOUDINARY_API_SECRET` in the backend environment to enable uploads.
+and `CLOUDINARY_API_SECRET` in the backend environment to enable food and profile photo uploads.
+
+Configure an SMTP account to email PDF receipts after successful payment and
+send email break reminders:
+
+```env
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+SMTP_FROM=Literacy Tree Canteen <canteen@example.com>
+```
+
+Browser push reminders require VAPID keys. Generate a key pair with
+`npx web-push generate-vapid-keys`, then configure:
+
+```env
+VAPID_PUBLIC_KEY=your_public_key
+VAPID_PRIVATE_KEY=your_private_key
+VAPID_SUBJECT=mailto:admin@literacytree.com
+```
+
+Administrators can add, edit, pause, or remove break, lunch, and other meal-time
+schedules from **Admin Dashboard → Settings**. New databases start with a
+10:30 AM morning break and 12:30 PM lunch, each with a 30-minute reminder.
+`BREAK_TIME` and `BREAK_REMINDER_MINUTES` configure the initial morning-break
+schedule; admins manage times after setup. `SCHOOL_TIME_ZONE` defaults to
+`Africa/Lusaka`. Reminders run on weekdays. Parents opt in to email or browser
+reminders from their dashboard.
+Push notifications and installation require HTTPS outside localhost.
+Only paid orders can receive email receipts; administrators can resend a receipt
+from the admin order list. SMTP and VAPID credentials must be configured on the
+backend before these delivery channels are available.
 
 ## Payment Integration
 
