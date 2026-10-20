@@ -366,7 +366,7 @@
                     <p>Manage meals for your children easily</p>
                 </div>
                 <div>
-                    <button class="btn btn-primary" onclick="location.href='menu.html'">
+                    <button class="btn btn-primary" onclick="location.href='/menu'">
                         <i class="fas fa-utensils"></i> Order Now
                     </button>
                     <i class="fas fa-moon" style="font-size: 20px; cursor: pointer; margin-left: 15px;" onclick="toggleDarkMode()"></i>
@@ -483,7 +483,7 @@
         function orderForChild(childId) {
             const child = parentData.children.find(c => c.id === childId);
             localStorage.setItem('selectedChild', JSON.stringify(child));
-            window.location.href = 'menu.html';
+            window.location.href = '/menu';
         }
 
         function addChild() {
@@ -528,7 +528,7 @@
 
         function logout() {
             localStorage.removeItem('parentLoggedIn');
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
         function toggleDarkMode() {

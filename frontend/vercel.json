@@ -1,0 +1,65 @@
+{
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/menu.html",
+      "destination": "/menu",
+      "permanent": true
+    },
+    {
+      "source": "/about.html",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact.html",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/success.html",
+      "destination": "/success",
+      "permanent": true
+    },
+    {
+      "source": "/admin-dashboard.html",
+      "destination": "/admin-dashboard",
+      "permanent": true
+    },
+    {
+      "source": "/parent-dashboard.html",
+      "destination": "/parent-dashboard",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/menu",
+      "destination": "/menu.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    },
+    {
+      "source": "/success",
+      "destination": "/success.html"
+    },
+    {
+      "source": "/admin-dashboard",
+      "destination": "/admin-dashboard.html"
+    },
+    {
+      "source": "/parent-dashboard",
+      "destination": "/parent-dashboard.html"
+    }
+  ]
+}

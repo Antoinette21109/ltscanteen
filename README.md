@@ -34,6 +34,12 @@ A web application for ordering food from the school canteen with integrated paym
    ```
 6. Open `http://localhost:3000/menu.html` in your browser
 
+## Page URLs
+
+The frontend supports extensionless URLs for all pages (for example, `/about`,
+`/menu`, and `/contact`). Vercel uses `frontend/vercel.json` to rewrite these
+paths to the existing HTML files and redirect legacy `.html` URLs to the clean URLs.
+
 ## Payment Integration
 
 This project is configured for Zynle only. All other payment gateways have been removed from the codebase. The order creation flow and checkout UI only support the `zynle` method.
