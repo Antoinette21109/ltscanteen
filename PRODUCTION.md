@@ -1,106 +1,58 @@
-# Production deployment guide
+# Firebase and Cloudinary deployment
 
-## 1. Project structure
+The production API is the root `server.js` entry point (`npm start`). Firebase
+Authentication owns account credentials and Cloud Firestore stores application
+data. Cloudinary stores uploaded image files; Firestore stores their HTTPS URLs.
+SQLite is not used and no existing SQLite records are migrated.
 
-```text
-/workspaces/ltscanteen/
-├── backend/
-│   ├── package.json
-│   └── src/
-│       ├── app.js
-│       ├── server.js
-│       ├── config/
-│       │   ├── db.js
-│       │   └── env.js
-│       ├── middleware/
-│       │   └── auth.js
-│       ├── routes/
-│       │   ├── admin.js
-│       │   ├── auth.js
-│       │   └── orders.js
-│       └── services/
-│           └── zynleService.js
-├── index.html
-├── menu.html
-├── contact.html
-├── about.html
-├── admin-dashboard.html
-├── parent-dashboard.html
-├── success.html
-├── receipt.css
-├── .env
-├── README.md
-├── package.json
-├── canteen.db
-└── mtn_complete_config.txt
-```
+## Firebase setup
 
-## 2. Production configuration
+1. Create a Firebase project, enable **Authentication → Email/Password**, add
+   the production frontend domain to Authentication's authorized domains, and
+   create a Firestore database.
+2. Publish [firestore.rules](./firestore.rules) to that Firebase project. The
+   client can read available menu items and only its own profile, children, and
+   orders. Client writes are denied; role, menu, order, and payment changes go
+   through the authenticated API using Firebase Admin.
+3. Register a Firebase web app and replace the placeholder values in
+   [frontend/api-config.js](./frontend/api-config.js).
+4. Create a Firebase service account with Authentication and Firestore access.
+   Configure its JSON as `FIREBASE_SERVICE_ACCOUNT_JSON` in the API host's
+   secret environment; never commit the private key.
+5. Set `FIREBASE_ADMIN_EMAILS` to a comma-separated list of trusted
+   administrator email addresses. These are assigned the admin role when their
+   profile is created or next authenticated by the API.
+6. Deploy the frontend and root API. The API health endpoint should report
+   `storage: "firebase-firestore"`.
 
-Install dependencies:
+## Required API environment
 
-```bash
-cd /workspaces/ltscanteen/backend
-npm install
-```
+Start from [.env.example](./.env.example) and configure deployment secrets for
+Firebase Admin, Cloudinary, and any enabled payment, email, or push services.
+The browser Firebase settings are public app configuration; service-account,
+Cloudinary API secret, payment, SMTP, and VAPID private keys are server secrets.
 
-Populate `.env` with production values:
+Set `FRONTEND_URL` to the deployed frontend origin and `PUBLIC_BASE_URL` to the
+public API origin. Configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET` for image upload signatures. Menu and profile images
+remain Cloudinary URLs in Firestore.
 
-```env
-PORT=3000
-NODE_ENV=production
-JWT_SECRET=replace_me_with_secure_random_value
-FRONTEND_URL=https://your-production-domain.com
-ZYNLE_API_URL=https://your-zynle-api-domain
-ZYNLE_API_KEY=your_zynle_api_key
-ZYNLE_SECRET_KEY=your_zynle_secret_key
-ZYNLE_MERCHANT_ID=your_zynle_merchant_id
-ZYNLE_CALLBACK_URL=https://your-production-domain.com/api/payments/zynle-callback
-PUBLIC_BASE_URL=https://your-production-domain.com
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-SMTP_HOST=your_smtp_host
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-SMTP_FROM="Literacy Tree Canteen <canteen@example.com>"
-VAPID_PUBLIC_KEY=your_vapid_public_key
-VAPID_PRIVATE_KEY=your_vapid_private_key
-VAPID_SUBJECT=mailto:admin@literacytree.com
-SCHOOL_TIME_ZONE=Africa/Lusaka
-CURRENCY=ZMW
-```
+Zynle, SMTP, and push reminders remain optional integrations. Configure the
+corresponding `ZYNLE_*`, `SMTP_*`, and `VAPID_*` variables when enabling them.
+Before accepting production payments, confirm the Zynle callback verification
+mechanism and configure it so an unauthenticated callback cannot mark an order
+paid. A payment-provider callback contract cannot be validated without live
+provider credentials.
 
-Generate browser push keys with `npx web-push generate-vapid-keys`. SMTP is
-required for order receipts and email reminders; VAPID keys are required for
-browser push reminders. Profile image uploads use the Cloudinary credentials
-listed above. Reminders are sent on weekdays in `SCHOOL_TIME_ZONE`. Admins set
-break, lunch, and other reminder times from Admin Dashboard → Settings. New
-databases are initialized with a 10:30 AM morning break and 12:30 PM lunch,
-each with a 30-minute reminder. `BREAK_TIME` and `BREAK_REMINDER_MINUTES` can
-override the initial morning-break schedule before the database is created.
+## Data layout
 
-## 3. Run in production
+- `users/{uid}`: profile, role, and reminder preferences
+- `users/{uid}/children/{childId}`: children
+- `users/{uid}/pushSubscriptions/{subscriptionId}`: push subscriptions
+- `menuItems/{menuItemId}`: menu details and Cloudinary image URLs
+- `orders/{orderId}` and `payments/{paymentId}`: orders and payment state
+- `reminderSchedules`, `reminderDeliveries`, `menuAccessRequests`, and
+  `menuChangeRequests`: operational data
 
-```bash
-cd /workspaces/ltscanteen/backend
-npm start
-```
-
-## 4. Security checklist
-
-- Do not commit `.env` to source control.
-- Rotate `JWT_SECRET` and all Zynle secret values before production launch.
-- Ensure the callback URL is publicly reachable over HTTPS.
-- Validate the Zynle callback payload before marking an order as paid.
-- Restrict admin access to authenticated administrators only.
-- Configure Cloudinary environment variables to enable staff food-image uploads.
-- Use a process manager like PM2 or a managed hosting service for deployment.
-
-## 5. Notes on Zynle
-
-This project has been migrated to a single-provider Zynle flow. The `zynleService.js` layer is where the live provider request is sent, and the callback route is `/api/payments/zynle-callback`.
-
-If the actual Zynle API contract differs from the standard request format, update the payload in the service and the callback validation in the orders route to match the provider contract exactly.
+The API seeds the default menu and reminder schedules only when those
+collections are empty. Existing Firebase documents are preserved.

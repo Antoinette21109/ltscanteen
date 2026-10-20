@@ -23,63 +23,6 @@ export const defaultMenuItems = [
   { id: 20, name: 'Fruit Punch', category: 'drinks', price: 10, image_url: 'https://picsum.photos/seed/frpunch1/400/300', description: 'Sweet tropical fruit punch', popular: 0 }
 ];
 
-export function initializeMenuDatabase(db) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS menu_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      category TEXT NOT NULL,
-      description TEXT NOT NULL,
-      price REAL NOT NULL CHECK (price > 0),
-      image_url TEXT NOT NULL,
-      popular INTEGER NOT NULL DEFAULT 0,
-      is_available INTEGER NOT NULL DEFAULT 1,
-      promo_percent REAL,
-      promo_start TEXT,
-      promo_end TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS menu_access_requests (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      session_id TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied')),
-      requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      reviewed_by INTEGER,
-      reviewed_at DATETIME,
-      UNIQUE(user_id, session_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS menu_change_requests (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      session_id TEXT NOT NULL,
-      item_id INTEGER,
-      action TEXT NOT NULL CHECK (action IN ('create', 'update')),
-      payload TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied')),
-      review_note TEXT,
-      reviewed_by INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      reviewed_at DATETIME
-    );
-  `);
-
-  const insert = db.prepare(`
-    INSERT OR IGNORE INTO menu_items
-      (id, name, category, price, image_url, description, popular, is_available)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-  `);
-  const seed = db.transaction(() => {
-    for (const item of defaultMenuItems) {
-      insert.run(item.id, item.name, item.category, item.price, item.image_url, item.description, item.popular);
-    }
-  });
-  seed();
-}
-
 export function formatMenuItem(item, now = new Date()) {
   const today = now.toISOString().slice(0, 10);
   const promoActive = Number(item.promo_percent) > 0 &&
@@ -106,35 +49,6 @@ export function formatMenuItem(item, now = new Date()) {
     description: item.description,
     popular: Boolean(item.popular),
     is_available: Boolean(item.is_available)
-  };
-}
-
-export function resolveOrderItems(db, requestedItems) {
-  if (!Array.isArray(requestedItems) || requestedItems.length === 0 || requestedItems.length > 50) {
-    throw new Error('Please provide between 1 and 50 menu items.');
-  }
-
-  const findItem = db.prepare('SELECT * FROM menu_items WHERE id = ?');
-  const items = requestedItems.map((requested) => {
-    const id = Number(requested?.id);
-    const quantity = Number(requested?.quantity);
-    if (!Number.isInteger(id) || id <= 0 || !Number.isInteger(quantity) || quantity < 1 || quantity > 50) {
-      throw new Error('Each menu item must have a valid ID and quantity.');
-    }
-    const menuItem = findItem.get(id);
-    if (!menuItem) {
-      throw new Error('A selected menu item no longer exists.');
-    }
-    if (!menuItem.is_available) {
-      throw new Error(`${menuItem.name} is currently out of stock.`);
-    }
-    const formatted = formatMenuItem(menuItem);
-    return { id, name: menuItem.name, price: formatted.price, quantity };
-  });
-
-  return {
-    items,
-    total: Math.round(items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100
   };
 }
 
@@ -199,35 +113,6 @@ export function validateMenuItem(payload) {
     promo_start: start,
     promo_end: end
   };
-}
-
-export function saveMenuItem(db, itemId, payload) {
-  if (itemId == null) {
-    const result = db.prepare(`
-      INSERT INTO menu_items
-        (name, category, description, price, image_url, popular, is_available, promo_percent, promo_start, promo_end)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      payload.name, payload.category, payload.description, payload.price, payload.image_url,
-      Number(payload.popular), Number(payload.is_available), payload.promo_percent, payload.promo_start, payload.promo_end
-    );
-    return result.lastInsertRowid;
-  }
-
-  const result = db.prepare(`
-    UPDATE menu_items SET
-      name = ?, category = ?, description = ?, price = ?, image_url = ?, popular = ?,
-      is_available = ?, promo_percent = ?, promo_start = ?, promo_end = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `).run(
-    payload.name, payload.category, payload.description, payload.price, payload.image_url,
-    Number(payload.popular), Number(payload.is_available), payload.promo_percent, payload.promo_start, payload.promo_end,
-    itemId
-  );
-  if (!result.changes) {
-    throw new Error('Menu item not found.');
-  }
-  return itemId;
 }
 
 export function createCloudinaryUploadSignature(apiSecret, timestamp) {

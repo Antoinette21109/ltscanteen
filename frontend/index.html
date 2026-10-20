@@ -628,6 +628,7 @@
         }
     </style>
     <script src="api-config.js"></script>
+    <script type="module" src="firebase-auth.js"></script>
 </head>
 
 <body>
@@ -1026,7 +1027,8 @@
                     <form id="registerForm" class="space-y-4" style="display:none">
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Full Name</label>
-                            <input type="text" class="form-input" placeholder="Your full name" required id="regName">
+                            <input type="text" class="form-input" placeholder="Your full name" required id="regName"
+                                maxlength="100">
                         </div>
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Email
@@ -1035,13 +1037,14 @@
                         </div>
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Phone Number</label>
-                            <input type="tel" class="form-input" placeholder="+260 XXX XXXXXX" required id="regPhone">
+                            <input type="tel" class="form-input" placeholder="+260 XXX XXXXXX" required id="regPhone"
+                                maxlength="30">
                         </div>
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Children's
                                 Names</label>
                             <textarea class="form-input" rows="2" placeholder="e.g. Emma, Joshua" required
-                                id="regChildren"></textarea>
+                                id="regChildren" maxlength="3000"></textarea>
                         </div>
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Password</label>
@@ -1739,6 +1742,16 @@
         async function apiCall(endpoint, options) {
             options = options || {};
             var headers = { 'Content-Type': 'application/json' };
+            if (window.ltFirebaseAuthReady) {
+                await window.ltFirebaseAuthReady;
+                var firebaseToken = await window.ltFirebaseAuthReady.then(function (auth) {
+                    return auth ? auth.getIdToken() : null;
+                });
+                if (firebaseToken) {
+                    authToken = firebaseToken;
+                    localStorage.setItem('ltToken', firebaseToken);
+                }
+            }
             if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
 
             var url = API + endpoint;
@@ -2080,18 +2093,64 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Signing in...';
 
-            apiCall('/api/login', {
-                method: 'POST',
-                body: { username: email, password: password, role: role }
-            }).then(function (data) {
-                authToken = data.token;
-                localStorage.setItem('ltToken', data.token);
+            (async function () {
+                var data;
+                if (role === 'parent') {
+                    var firebaseAuth = await window.ltFirebaseAuthReady;
+                    if (!firebaseAuth) {
+                        throw new Error('Firebase sign-in is not configured yet. Please contact the site administrator.');
+                    }
+                    var firebaseUser = await firebaseAuth.signIn(email, password);
+                    authToken = await firebaseUser.getIdToken();
+                    localStorage.setItem('ltToken', authToken);
+                    data = { user: await apiCall('/api/me') };
+                    if (!['customer', 'parent'].includes(data.user.role)) {
+                        await firebaseAuth.signOut();
+                        authToken = null;
+                        localStorage.removeItem('ltToken');
+                        throw new Error('This account does not have access to parent sign-in.');
+                    }
+                } else {
+                    var firebaseAuth = await window.ltFirebaseAuthReady;
+                    if (firebaseAuth) await firebaseAuth.signOut();
+                    authToken = null;
+                    localStorage.removeItem('ltToken');
+                    var firebaseSignedIn = false;
+                    if (firebaseAuth) {
+                        try {
+                            var firebaseUser = await firebaseAuth.signIn(email, password);
+                            firebaseSignedIn = true;
+                            authToken = await firebaseUser.getIdToken();
+                            localStorage.setItem('ltToken', authToken);
+                            var firebaseProfile = await apiCall('/api/me');
+                            if (firebaseProfile.role !== role) {
+                                await firebaseAuth.signOut();
+                                authToken = null;
+                                localStorage.removeItem('ltToken');
+                                throw new Error('This account does not have access to the selected sign-in.');
+                            }
+                            data = { user: firebaseProfile };
+                        } catch (error) {
+                            if (firebaseSignedIn) throw error;
+                        }
+                    }
+                    if (!data) {
+                        authToken = null;
+                        localStorage.removeItem('ltToken');
+                        data = await apiCall('/api/login', {
+                            method: 'POST',
+                            body: { username: email, password: password, role: role }
+                        });
+                    }
+                }
+                if (data.token) authToken = data.token;
+                if (data.token) localStorage.setItem('ltToken', data.token);
                 currentUser = data.user;
                 localStorage.setItem('ltUser', JSON.stringify(data.user));
                 showToast('Welcome back, ' + (data.user.full_name || data.user.username) + '!', 'success');
                 updateHeaderForUser();
                 showDashboard();
-            }).catch(function (err) {
+            })().catch(function (err) {
                 showToast(err.message, 'error');
             }).finally(function () {
                 btn.disabled = false;
@@ -2115,10 +2174,18 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating account...';
 
-            apiCall('/api/register', {
-                method: 'POST',
-                body: { username: email, password: password, full_name: name, phone: phone, children: children }
-            }).then(function (data) {
+            (async function () {
+                var firebaseAuth = await window.ltFirebaseAuthReady;
+                if (!firebaseAuth) {
+                    throw new Error('Firebase registration is not configured yet. Please contact the site administrator.');
+                }
+                var firebaseUser = await firebaseAuth.createAccount(email, password);
+                authToken = await firebaseUser.getIdToken();
+                localStorage.setItem('ltToken', authToken);
+                var data = await apiCall('/api/register', {
+                    method: 'POST',
+                    body: { full_name: name, phone: phone, children: children }
+                });
                 authToken = data.token;
                 localStorage.setItem('ltToken', data.token);
                 currentUser = data.user;
@@ -2126,7 +2193,7 @@
                 showToast('Account created! Welcome!', 'success');
                 updateHeaderForUser();
                 showDashboard();
-            }).catch(function (err) {
+            })().catch(function (err) {
                 showToast(err.message, 'error');
             }).finally(function () {
                 btn.disabled = false;
@@ -2135,6 +2202,13 @@
         }
 
         function logout() {
+            if (window.ltFirebaseAuthReady) {
+                window.ltFirebaseAuthReady.then(function (firebaseAuth) {
+                    if (firebaseAuth) return firebaseAuth.signOut();
+                }).catch(function (error) {
+                    console.error('Firebase sign-out failed:', error);
+                });
+            }
             currentUser = null;
             authToken = null;
             cart = [];
@@ -2292,7 +2366,10 @@
         }
 
         async function loadParentProfile() {
-            parentProfile = await apiCall('/api/profile');
+            var firebaseAuth = await window.ltFirebaseAuthReady;
+            parentProfile = firebaseAuth
+                ? await firebaseAuth.getParentProfile()
+                : await apiCall('/api/profile');
             renderParentProfile(parentProfile);
             return parentProfile;
         }
@@ -2325,17 +2402,19 @@
                 container.innerHTML = '<p class="text-sm py-3" style="color:var(--text-muted)">No children added yet. Add a child to place an order.</p>';
             } else {
                 container.innerHTML = children.map(function (child) {
+                    var childId = String(child.id);
+                    var childArgument = "decodeURIComponent('" + encodeURIComponent(childId) + "')";
                     var childImage = child.photo_url
                         ? '<img src="' + escapeHtml(child.photo_url) + '" alt="' + escapeHtml(child.name) + '" class="w-14 h-14 rounded-full object-cover">'
                         : '<span class="w-14 h-14 rounded-full flex items-center justify-center" style="background:var(--bg);color:var(--primary)"><i class="fas fa-user-graduate text-xl"></i></span>';
                     return '<div class="p-3 rounded-xl space-y-3" style="background:var(--bg)">' +
                         '<div class="flex items-center gap-3">' + childImage +
                         '<label class="text-xs font-semibold" style="color:var(--primary)">Upload photo' +
-                        '<input type="file" accept="image/*" class="block mt-1 text-xs" onchange="uploadProfilePhoto(event,' + Number(child.id) + ')"></label></div>' +
-                        '<input id="childName' + Number(child.id) + '" class="form-input" maxlength="100" value="' + escapeHtml(child.name) + '" aria-label="Child name">' +
-                        '<input id="childGrade' + Number(child.id) + '" class="form-input" maxlength="50" value="' + escapeHtml(child.grade || '') + '" placeholder="Grade or class" aria-label="Grade or class">' +
-                        '<div class="flex gap-2"><button class="px-3 py-2 rounded-lg font-bold text-white text-xs" style="background:var(--primary)" onclick="saveChildProfile(' + Number(child.id) + ')">Save child</button>' +
-                        '<button class="px-3 py-2 rounded-lg font-bold text-xs" style="color:#b42318" onclick="deleteChildProfile(' + Number(child.id) + ')">Remove</button></div>' +
+                        '<input type="file" accept="image/*" class="block mt-1 text-xs" onchange="uploadProfilePhoto(event,' + childArgument + ')"></label></div>' +
+                        '<input id="childName' + escapeHtml(childId) + '" class="form-input" maxlength="100" value="' + escapeHtml(child.name) + '" aria-label="Child name">' +
+                        '<input id="childGrade' + escapeHtml(childId) + '" class="form-input" maxlength="50" value="' + escapeHtml(child.grade || '') + '" placeholder="Grade or class" aria-label="Grade or class">' +
+                        '<div class="flex gap-2"><button class="px-3 py-2 rounded-lg font-bold text-white text-xs" style="background:var(--primary)" onclick="saveChildProfile(' + childArgument + ')">Save child</button>' +
+                        '<button class="px-3 py-2 rounded-lg font-bold text-xs" style="color:#b42318" onclick="deleteChildProfile(' + childArgument + ')">Remove</button></div>' +
                         '</div>';
                 }).join('');
             }
@@ -2601,7 +2680,11 @@
 
         // ===== MENU RENDERING =====
         function loadMenuItems() {
-            return apiCall('/api/menu').then(function (items) {
+            return window.ltFirebaseAuthReady.then(function (firebaseAuth) {
+                return firebaseAuth && (!currentUser || !['staff', 'admin'].includes(currentUser.role))
+                    ? firebaseAuth.getMenuItems()
+                    : apiCall('/api/menu');
+            }).then(function (items) {
                 if (!Array.isArray(items)) throw new Error('The menu response is invalid.');
                 menuItems = items;
                 renderPopularMenu();
@@ -2735,7 +2818,9 @@
         // ===== DASHBOARD =====
         function renderDashboardStatsFromDB() {
             if (!currentUser) return;
-            apiCall('/api/orders?user_id=' + currentUser.id).then(function (orders) {
+            window.ltFirebaseAuthReady.then(function (firebaseAuth) {
+                return firebaseAuth ? firebaseAuth.getMyOrders() : apiCall('/api/orders');
+            }).then(function (orders) {
                 var total = orders.length;
                 var pending = 0, completed = 0, spent = 0;
                 for (var i = 0; i < orders.length; i++) {
@@ -2801,7 +2886,7 @@
                     itemDesc += (items[j].name || items[j].item) + ' x' + (items[j].quantity || items[j].qty);
                 }
                 var dateStr = (o.created_at || '').replace('T', ' ').substring(0, 16);
-                html += '<div class="p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all hover:translate-x-1" style="background:var(--bg);cursor:pointer;border-left:4px solid ' + (o.status === 'completed' ? 'var(--primary-light)' : o.status === 'confirmed' ? 'var(--primary)' : 'var(--accent)') + '" onclick="showReceipt(' + o.id + ')">' +
+                html += '<div class="p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all hover:translate-x-1" style="background:var(--bg);cursor:pointer;border-left:4px solid ' + (o.status === 'completed' ? 'var(--primary-light)' : o.status === 'confirmed' ? 'var(--primary)' : 'var(--accent)') + '" onclick="showReceipt(decodeURIComponent(&quot;' + encodeURIComponent(String(o.id)) + '&quot;))">' +
                     '<div class="flex-1 min-w-0">' +
                     '<div class="flex items-center gap-3 mb-1 flex-wrap">' +
                     '<span class="font-bold text-sm" style="color:var(--text)">' + (o.order_number || ('Order #' + o.id)) + '</span>' +
@@ -2820,7 +2905,9 @@
 
         function renderOrdersFromDB() {
             if (!currentUser) return;
-            apiCall('/api/orders?user_id=' + currentUser.id).then(function (orders) {
+            window.ltFirebaseAuthReady.then(function (firebaseAuth) {
+                return firebaseAuth ? firebaseAuth.getMyOrders() : apiCall('/api/orders');
+            }).then(function (orders) {
                 allOrders = orders || [];
                 renderFilteredOrders();
             }).catch(function () {
@@ -2831,7 +2918,9 @@
 
         function renderDashboardStatsFromDB() {
             if (!currentUser) return;
-            apiCall('/api/orders?user_id=' + currentUser.id).then(function (orders) {
+            window.ltFirebaseAuthReady.then(function (firebaseAuth) {
+                return firebaseAuth ? firebaseAuth.getMyOrders() : apiCall('/api/orders');
+            }).then(function (orders) {
                 var total = orders.length;
                 var pending = 0, completed = 0, spent = 0;
                 for (var i = 0; i < orders.length; i++) {
@@ -3076,8 +3165,8 @@
                     return '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl p-4" style="background:var(--bg)">' +
                         '<div><div class="font-bold" style="color:var(--text)">' + escapeHtml(request.full_name || request.username) + '</div>' +
                         '<div class="text-sm" style="color:var(--text-muted)">' + escapeHtml(request.username) + ' requested menu access for this login session.</div></div>' +
-                        '<div class="flex gap-2"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuAccess(' + Number(request.id) + ',&#39;approved&#39;)">Approve</button>' +
-                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuAccess(' + Number(request.id) + ',&#39;denied&#39;)">Deny</button></div></div>';
+                        '<div class="flex gap-2"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuAccess(decodeURIComponent(&quot;' + encodeURIComponent(String(request.id)) + '&quot;),&#39;approved&#39;)">Approve</button>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuAccess(decodeURIComponent(&quot;' + encodeURIComponent(String(request.id)) + '&quot;),&#39;denied&#39;)">Deny</button></div></div>';
                 }).join('') : '<p class="text-sm" style="color:var(--text-muted)">No pending access requests.</p>';
 
                 changesContainer.innerHTML = changes.length ? changes.map(function (change) {
@@ -3095,10 +3184,10 @@
                         '<p class="text-sm" style="color:var(--text-muted)">' + escapeHtml(item.category) + ' · ZMW ' + Number(item.price).toFixed(2) +
                         ' · ' + (item.is_available ? 'In stock' : 'Out of stock') + ' · Submitted by ' + escapeHtml(change.full_name || change.username) + '</p>' +
                         '<p class="text-sm" style="color:var(--text-muted)">' + escapeHtml(item.description) + '</p>' + previous + discount +
-                        '<label class="block text-xs mt-3" for="menu-review-note-' + Number(change.id) + '" style="color:var(--text-muted)">Optional note for the staff member</label>' +
-                        '<input id="menu-review-note-' + Number(change.id) + '" class="form-input mt-1" maxlength="500" placeholder="Review note">' +
-                        '<div class="flex gap-2 mt-3"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuChange(' + Number(change.id) + ',&#39;approved&#39;)">Approve &amp; publish</button>' +
-                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuChange(' + Number(change.id) + ',&#39;denied&#39;)">Deny</button></div>' +
+                        '<label class="block text-xs mt-3" for="menu-review-note-' + escapeHtml(String(change.id)) + '" style="color:var(--text-muted)">Optional note for the staff member</label>' +
+                        '<input id="menu-review-note-' + escapeHtml(String(change.id)) + '" class="form-input mt-1" maxlength="500" placeholder="Review note">' +
+                        '<div class="flex gap-2 mt-3"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuChange(decodeURIComponent(&quot;' + encodeURIComponent(String(change.id)) + '&quot;),&#39;approved&#39;)">Approve &amp; publish</button>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuChange(decodeURIComponent(&quot;' + encodeURIComponent(String(change.id)) + '&quot;),&#39;denied&#39;)">Deny</button></div>' +
                         '</div></div></div>';
                 }).join('') : '<p class="text-sm" style="color:var(--text-muted)">No menu changes awaiting approval.</p>';
             }).catch(function (err) {
@@ -3143,17 +3232,19 @@
 
                 listEl.innerHTML = users.map(function (user) {
                     var role = user.role === 'parent' ? 'customer' : user.role;
-                    var isCurrentUser = Number(user.id) === Number(currentUser.id);
+                    var userId = String(user.id);
+                    var userArgument = "decodeURIComponent('" + encodeURIComponent(userId) + "')";
+                    var isCurrentUser = userId === String(currentUser.id);
                     return '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl p-4" style="background:var(--bg)">' +
                         '<div><div class="font-bold" style="color:var(--text)">' + escapeHtml(user.full_name || user.username) + '</div>' +
                         '<div class="text-sm" style="color:var(--text-muted)">' + escapeHtml(user.username) + '</div></div>' +
                         '<div class="flex gap-2">' +
-                        '<select class="form-input" id="managed-role-' + Number(user.id) + '"' + (isCurrentUser ? ' disabled aria-label="Your account role"' : ' aria-label="Role for ' + escapeHtml(user.username) + '"') + '>' +
+                        '<select class="form-input" id="managed-role-' + escapeHtml(userId) + '"' + (isCurrentUser ? ' disabled aria-label="Your account role"' : ' aria-label="Role for ' + escapeHtml(user.username) + '"') + '>' +
                         '<option value="customer"' + (role === 'customer' ? ' selected' : '') + '>Parent</option>' +
                         '<option value="staff"' + (role === 'staff' ? ' selected' : '') + '>Staff</option>' +
                         '<option value="admin"' + (role === 'admin' ? ' selected' : '') + '>Administrator</option>' +
                         '</select>' +
-                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateManagedUserRole(' + Number(user.id) + ')"' + (isCurrentUser ? ' disabled' : '') + '>Save</button>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateManagedUserRole(' + userArgument + ')"' + (isCurrentUser ? ' disabled' : '') + '>Save</button>' +
                         '</div></div>';
                 }).join('');
             }).catch(function (err) {
@@ -3260,12 +3351,12 @@
                         '<span>Placed: ' + escapeHtml((order.created_at || '').replace('T', ' ').substring(0, 16)) + '</span>' +
                         '</div>' +
                         '<div class="flex flex-wrap items-center gap-2 mt-3">' +
-                        '<label class="text-sm font-medium" for="order-status-' + Number(order.id) + '" style="color:var(--text)">Update status</label>' +
-                        '<select class="form-input max-w-xs" id="order-status-' + Number(order.id) + '">' +
+                        '<label class="text-sm font-medium" for="order-status-' + escapeHtml(String(order.id)) + '" style="color:var(--text)">Update status</label>' +
+                        '<select class="form-input max-w-xs" id="order-status-' + escapeHtml(String(order.id)) + '">' +
                         ['pending', 'confirmed', 'completed', 'cancelled'].map(function (status) {
                             return '<option value="' + status + '"' + (order.status === status ? ' selected' : '') + '>' + status.charAt(0).toUpperCase() + status.slice(1) + '</option>';
                         }).join('') +
-                        '</select><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateOrderStatus(' + Number(order.id) + ')">Save</button>' +
+                        '</select><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateOrderStatus(decodeURIComponent(&quot;' + encodeURIComponent(String(order.id)) + '&quot;))">Save</button>' +
                         '</div>' +
                         '</div>';
                 }).join('');
@@ -3281,7 +3372,7 @@
             var order = null;
 
             for (var i = 0; i < allOrders.length; i++) {
-                if (allOrders[i].id === orderId) {
+                if (String(allOrders[i].id) === String(orderId)) {
                     order = allOrders[i];
                     break;
                 }
@@ -3497,7 +3588,7 @@
             select.innerHTML = '<option value="">Choose a child</option>';
             var kids = parentProfile && parentProfile.children || [];
             for (var i = 0; i < kids.length; i++) {
-                select.innerHTML += '<option value="' + Number(kids[i].id) + '">' +
+                select.innerHTML += '<option value="' + escapeHtml(String(kids[i].id)) + '">' +
                     escapeHtml(kids[i].name) + (kids[i].grade ? ' - ' + escapeHtml(kids[i].grade) : '') + '</option>';
             }
             if (!kids.length) {
@@ -3548,10 +3639,10 @@
         }
 
         function placeOrder() {
-            var child = Number(document.getElementById('checkoutChild').value);
+            var child = document.getElementById('checkoutChild').value;
             var date = document.getElementById('checkoutDate').value;
 
-            if (!Number.isInteger(child) || child < 1) { showToast('Please select a child.', 'warning'); return; }
+            if (!child) { showToast('Please select a child.', 'warning'); return; }
             if (!date) { showToast('Please select a date.', 'warning'); return; }
             if (!selectedPayment) { showToast('Please select a payment method.', 'warning'); return; }
 

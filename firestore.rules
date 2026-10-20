@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /menuItems/{itemId} {
+      allow get, list: if resource.data.is_available == true;
+    }
+
+    match /users/{userId} {
+      allow get: if request.auth != null && request.auth.uid == userId;
+      allow list, create, update, delete: if false;
+
+      match /children/{childId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /pushSubscriptions/{subscriptionId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /orders/{orderId} {
+      allow read: if request.auth != null && resource.data.user_id == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
