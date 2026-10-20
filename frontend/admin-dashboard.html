@@ -408,6 +408,7 @@
             cursor: pointer;
         }
     </style>
+    <script src="api-config.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -635,7 +636,7 @@
 
         async function loadDashboardData() {
             try {
-                const response = await fetch('/api/admin/orders');
+                const response = await window.ltApiFetch('/api/admin/orders');
                 const orders = await response.json();
                 ordersData = orders;
 
@@ -675,7 +676,7 @@
 
         async function loadAllOrders() {
             try {
-                const response = await fetch('/api/admin/orders');
+                const response = await window.ltApiFetch('/api/admin/orders');
                 const orders = await response.json();
                 ordersData = orders;
                 renderOrdersTable(orders, 'allOrdersBody');
@@ -822,6 +823,7 @@
 
         function logout() {
             localStorage.removeItem('token');
+            localStorage.removeItem('ltToken');
             window.location.href = '/';
         }
 

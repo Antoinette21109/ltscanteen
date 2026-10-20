@@ -624,6 +624,7 @@
             }
         }
     </style>
+    <script src="api-config.js"></script>
 </head>
 
 <body>
@@ -1516,7 +1517,7 @@
         let selectedPayment = null;
 
         // ===== API CONFIG =====
-        const API = 'https://ltscanteen.onrender.com';
+        const API = window.LT_API_BASE_URL;
         // Set API to your server URL when not serving from same origin, e.g.:
         //const API = 'http://localhost:3000';
 
