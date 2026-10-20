@@ -57,6 +57,9 @@ ZYNLE_SECRET_KEY=your_zynle_secret_key
 ZYNLE_MERCHANT_ID=your_zynle_merchant_id
 ZYNLE_CALLBACK_URL=https://your-production-domain.com/api/payments/zynle-callback
 PUBLIC_BASE_URL=https://your-production-domain.com
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 CURRENCY=ZMW
 ```
 
@@ -74,6 +77,7 @@ npm start
 - Ensure the callback URL is publicly reachable over HTTPS.
 - Validate the Zynle callback payload before marking an order as paid.
 - Restrict admin access to authenticated administrators only.
+- Configure Cloudinary environment variables to enable staff food-image uploads.
 - Use a process manager like PM2 or a managed hosting service for deployment.
 
 ## 5. Notes on Zynle

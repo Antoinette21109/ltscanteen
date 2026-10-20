@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { initializeMenuDatabase } from './menu.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,11 +54,12 @@ const schema = `
 `;
 
 db.exec(schema);
+initializeMenuDatabase(db);
 
 const adminPassword = bcrypt.hashSync('Admin123!', 10);
 db.prepare(`
   INSERT OR IGNORE INTO users (username, password, full_name, phone, role)
   VALUES (?, ?, ?, ?, ?)
-`).run('admin@literacytree.com', adminPassword, 'School Chef', '+260974754810', 'admin');
+`).run('admin@literacytree.com', adminPassword, 'School Administrator', '+260974754810', 'admin');
 
 export default db;

@@ -2,11 +2,22 @@ import express from 'express';
 import db from '../config/db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { initiateZynlePayment } from '../services/zynleService.js';
+import { formatMenuItem, resolveOrderItems } from '../config/menu.js';
 
 const router = express.Router();
 
 router.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+router.get('/api/menu', (req, res) => {
+  try {
+    const menu = db.prepare('SELECT * FROM menu_items ORDER BY category, name').all();
+    res.json(menu.map((item) => formatMenuItem(item)));
+  } catch (error) {
+    console.error('Menu fetch error:', error);
+    res.status(500).json({ error: 'Unable to load the menu.' });
+  }
 });
 
 router.post('/create-checkout-session', async (req, res) => {
@@ -20,7 +31,13 @@ router.post('/create-checkout-session', async (req, res) => {
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
 
-    const total = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity || 1)), 0);
+    let order;
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const total = order.total;
     const orderNumber = `LTS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const resolvedCustomerName = customerName || user?.full_name || user?.username || 'Guest';
 
@@ -31,8 +48,8 @@ router.post('/create-checkout-session', async (req, res) => {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const info = userId
-      ? insertOrder.run(orderNumber, userId, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending')
-      : insertOrder.run(orderNumber, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+      ? insertOrder.run(orderNumber, userId, resolvedCustomerName, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending')
+      : insertOrder.run(orderNumber, resolvedCustomerName, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
     const orderId = info.lastInsertRowid;
 
     try {
@@ -56,6 +73,7 @@ router.post('/create-checkout-session', async (req, res) => {
 });
 
 router.post('/api/orders', authenticateToken, async (req, res) => {
+  let order;
   try {
     const { items, paymentMethod, phoneNumber, customerName } = req.body;
     const userId = req.user.id;
@@ -63,16 +81,21 @@ router.post('/api/orders', authenticateToken, async (req, res) => {
     if (!items || !items.length) return res.status(400).json({ error: 'No items in cart' });
     if (paymentMethod !== 'zynle') return res.status(400).json({ error: 'Only ZynlePay is supported' });
     if (!phoneNumber) return res.status(400).json({ error: 'Phone number is required' });
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
 
-    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = order.total;
     const orderNumber = `LTS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const info = db.prepare(`INSERT INTO orders (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+      .run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
 
     const orderId = info.lastInsertRowid;
 
@@ -107,12 +130,18 @@ router.post('/api/guest-checkout', async (req, res) => {
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
 
-    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let order;
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const total = order.total;
     const orderNumber = `LTS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const info = db.prepare(`INSERT INTO orders (order_number, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+      .run(orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
 
     const orderId = info.lastInsertRowid;
 

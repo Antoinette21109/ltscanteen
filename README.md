@@ -44,8 +44,16 @@ paths to the existing HTML files and redirect legacy `.html` URLs to the clean U
 
 Sign in as a parent, staff member, or administrator using the account's assigned
 role. Administrators can create staff accounts and manage account roles. Staff
-can view orders and update their statuses; only administrators can manage users
-and permissions. Role access is checked by the backend.
+can view and update orders. Staff must request menu access for each login
+session; administrators approve that request and review each proposed menu
+change before it is published. Menu changes include food details, image, price,
+stock availability, and dated percentage promotions. Administrators can manage
+the menu directly, approve access and menu change requests, and manage accounts.
+Role and approval checks are enforced by the backend.
+
+Food images are uploaded directly to Cloudinary using short-lived signatures
+issued by the backend. Configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+and `CLOUDINARY_API_SECRET` in the backend environment to enable uploads.
 
 ## Payment Integration
 

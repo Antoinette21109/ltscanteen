@@ -653,13 +653,13 @@
         <div class="p-4">
             <a href="#home"
                 class="mobile-nav-link flex items-center gap-4 p-4 rounded-xl transition-all hover:translate-x-1"
-                style="color:var(--text)" onclick="closeMobileNav()">
+                style="color:var(--text)" onclick="closeMobileNav();showHomePage()">
                 <i class="fas fa-home w-6 text-center" style="color:var(--primary)"></i><span
                     class="font-medium">Home</span>
             </a>
             <a href="#features"
                 class="mobile-nav-link flex items-center gap-4 p-4 rounded-xl transition-all hover:translate-x-1"
-                style="color:var(--text)" onclick="closeMobileNav()">
+                style="color:var(--text)" onclick="closeMobileNav();showHomePage()">
                 <i class="fas fa-star w-6 text-center" style="color:var(--primary)"></i><span
                     class="font-medium">Features</span>
             </a>
@@ -671,10 +671,22 @@
             </a>
             <a href="#contact"
                 class="mobile-nav-link flex items-center gap-4 p-4 rounded-xl transition-all hover:translate-x-1"
-                style="color:var(--text)" onclick="closeMobileNav()">
+                style="color:var(--text)" onclick="closeMobileNav();showHomePage()">
                 <i class="fas fa-envelope w-6 text-center" style="color:var(--primary)"></i><span
                     class="font-medium">Contact</span>
             </a>
+            <a href="#" id="mobileAccountLink"
+                class="mobile-nav-link flex items-center gap-4 p-4 rounded-xl transition-all hover:translate-x-1"
+                style="color:var(--text)" onclick="event.preventDefault();closeMobileNav();currentUser?showDashboard():showAuth()">
+                <i class="fas fa-user w-6 text-center" style="color:var(--primary)"></i><span
+                    class="font-medium">Login</span>
+            </a>
+            <button type="button" id="mobileLogoutLink"
+                class="mobile-nav-link w-full flex items-center gap-4 p-4 rounded-xl transition-all hover:translate-x-1"
+                style="color:var(--text);display:none" onclick="closeMobileNav();logout()">
+                <i class="fas fa-sign-out-alt w-6 text-center" style="color:var(--primary)"></i><span
+                    class="font-medium">Log out</span>
+            </button>
             <div class="mt-4 p-4 rounded-xl" style="background:var(--bg)">
                 <div class="flex items-center justify-between">
                     <span class="font-medium flex items-center gap-2" style="color:var(--text)"><i class="fas fa-moon"
@@ -1218,6 +1230,96 @@
                     <div id="chefOrdersList" class="space-y-3"></div>
                 </div>
 
+                <div class="card-elevated p-6 sm:p-8 mt-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                        <div>
+                            <h3 class="font-display font-bold text-xl" style="color:var(--text)">Menu Management</h3>
+                            <p class="text-sm mt-1" style="color:var(--text-muted)">Add foods, update prices and stock, and schedule percentage promotions.</p>
+                        </div>
+                        <button id="requestMenuAccessButton" type="button" class="px-4 py-2 rounded-xl font-bold text-sm text-white" style="background:var(--primary)" onclick="requestMenuAccess()">
+                            Request Menu Access
+                        </button>
+                    </div>
+                    <p id="menuAccessMessage" class="text-sm mb-4" style="color:var(--text-muted)">Menu controls require administrator approval for this login session.</p>
+                    <div id="menuControls" style="display:none">
+                        <form id="menuItemForm" class="grid sm:grid-cols-2 gap-4">
+                            <input id="menuItemId" type="hidden">
+                            <div class="sm:col-span-2">
+                                <label for="menuItemSelect" class="block mb-2 font-medium text-sm" style="color:var(--text)">Existing food or create new</label>
+                                <select id="menuItemSelect" class="form-input"><option value="">Create a new food</option></select>
+                            </div>
+                            <div>
+                                <label for="menuItemName" class="block mb-2 font-medium text-sm" style="color:var(--text)">Food name</label>
+                                <input id="menuItemName" class="form-input" maxlength="100" required>
+                            </div>
+                            <div>
+                                <label for="menuItemCategory" class="block mb-2 font-medium text-sm" style="color:var(--text)">Category</label>
+                                <select id="menuItemCategory" class="form-input" required>
+                                    <option value="meals">Meals</option><option value="drinks">Drinks</option>
+                                    <option value="snacks">Snacks</option><option value="fruits">Fruits</option>
+                                    <option value="treats">Treats</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="menuItemDescription" class="block mb-2 font-medium text-sm" style="color:var(--text)">Description</label>
+                                <textarea id="menuItemDescription" class="form-input" maxlength="500" rows="2" required></textarea>
+                            </div>
+                            <div>
+                                <label for="menuItemPrice" class="block mb-2 font-medium text-sm" style="color:var(--text)">Price (ZMW)</label>
+                                <input id="menuItemPrice" class="form-input" type="number" min="0.01" max="100000" step="0.01" required>
+                            </div>
+                            <div>
+                                <label for="menuItemImage" class="block mb-2 font-medium text-sm" style="color:var(--text)">Image URL</label>
+                                <input id="menuItemImage" class="form-input" type="url" placeholder="Upload an image or paste an HTTPS URL" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="menuImageFile" class="block mb-2 font-medium text-sm" style="color:var(--text)">Upload food image (max 5 MB)</label>
+                                <input id="menuImageFile" class="form-input" type="file" accept="image/jpeg,image/png,image/webp">
+                                <img id="menuImagePreview" alt="Selected food preview" class="mt-3 rounded-xl object-cover" style="display:none;max-height:180px">
+                            </div>
+                            <label class="flex items-center gap-2 text-sm" style="color:var(--text)">
+                                <input id="menuItemPopular" type="checkbox"> Feature as popular
+                            </label>
+                            <label class="flex items-center gap-2 text-sm" style="color:var(--text)">
+                                <input id="menuItemAvailable" type="checkbox" checked> In stock and available to order
+                            </label>
+                            <div>
+                                <label for="menuPromoPercent" class="block mb-2 font-medium text-sm" style="color:var(--text)">Promotion discount (%)</label>
+                                <input id="menuPromoPercent" class="form-input" type="number" min="1" max="99" step="1" placeholder="Optional">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="menuPromoStart" class="block mb-2 font-medium text-sm" style="color:var(--text)">Starts</label>
+                                    <input id="menuPromoStart" class="form-input" type="date">
+                                </div>
+                                <div>
+                                    <label for="menuPromoEnd" class="block mb-2 font-medium text-sm" style="color:var(--text)">Ends</label>
+                                    <input id="menuPromoEnd" class="form-input" type="date">
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2 flex flex-wrap gap-3">
+                                <button id="submitMenuChangeButton" type="submit" class="px-5 py-3 rounded-xl font-bold text-sm text-white" style="background:var(--primary)">Submit menu change</button>
+                                <button type="button" class="px-5 py-3 rounded-xl font-bold text-sm" style="border:1px solid var(--border);color:var(--text)" onclick="resetMenuItemForm()">Clear form</button>
+                            </div>
+                        </form>
+                        <div class="mt-8">
+                            <h4 class="font-bold mb-3" style="color:var(--text)">My menu change requests</h4>
+                            <div id="myMenuChanges" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adminMenuReview" class="mt-6 space-y-6" style="display:none">
+                    <div class="card-elevated p-6 sm:p-8">
+                        <h3 class="font-display font-bold text-xl mb-4" style="color:var(--text)">Staff Menu Access Requests</h3>
+                        <div id="pendingMenuAccessRequests" class="space-y-3"></div>
+                    </div>
+                    <div class="card-elevated p-6 sm:p-8">
+                        <h3 class="font-display font-bold text-xl mb-4" style="color:var(--text)">Menu Changes Awaiting Approval</h3>
+                        <div id="pendingMenuChanges" class="space-y-4"></div>
+                    </div>
+                </div>
+
                 <div class="card-elevated p-6 sm:p-8 mt-6" id="adminUserManagement" style="display:none">
                     <div class="mb-6">
                         <h3 class="font-display font-bold text-xl" style="color:var(--text)">Staff &amp; Account Access</h3>
@@ -1526,31 +1628,10 @@
 
     <script>
         // ===== DATA =====
-        const menuItems = [
-            { id: 1, name: 'Nshima and Chicken', category: 'meals', price: 25, img: 'https://picsum.photos/seed/nshimachk/400/300', desc: 'Traditional nshima with fried chicken and vegetables', popular: true },
-            { id: 2, name: 'Rice and Stew', category: 'meals', price: 20, img: 'https://picsum.photos/seed/ricestew/400/300', desc: 'Fluffy rice with rich tomato stew and salad', popular: true },
-            { id: 3, name: 'Sandwich Combo', category: 'meals', price: 18, img: 'https://picsum.photos/seed/sandwich1/400/300', desc: 'Ham and cheese sandwich with a fruit side', popular: false },
-            { id: 4, name: 'Chapati and Beans', category: 'meals', price: 15, img: 'https://picsum.photos/seed/chapatibns/400/300', desc: 'Fresh chapati with baked beans', popular: false },
-            { id: 5, name: 'Mac and Cheese', category: 'meals', price: 22, img: 'https://picsum.photos/seed/maccheese/400/300', desc: 'Creamy macaroni and cheese with greens', popular: true },
-            { id: 6, name: 'Fruit Juice', category: 'drinks', price: 8, img: 'https://picsum.photos/seed/fruitjuice/400/300', desc: 'Freshly squeezed seasonal fruit juice', popular: true },
-            { id: 7, name: 'Milkshake', category: 'drinks', price: 12, img: 'https://picsum.photos/seed/milkshk1/400/300', desc: 'Creamy milkshake, chocolate or strawberry', popular: false },
-            { id: 8, name: 'Bottled Water', category: 'drinks', price: 5, img: 'https://picsum.photos/seed/bottleh2o/400/300', desc: 'Pure filtered water', popular: false },
-            { id: 9, name: 'Hot Chocolate', category: 'drinks', price: 10, img: 'https://picsum.photos/seed/hotchoc1/400/300', desc: 'Rich hot chocolate with marshmallow', popular: true },
-            { id: 10, name: 'Banana', category: 'fruits', price: 5, img: 'https://picsum.photos/seed/bananafr/400/300', desc: 'Fresh ripe banana', popular: false },
-            { id: 11, name: 'Apple', category: 'fruits', price: 6, img: 'https://picsum.photos/seed/applefr1/400/300', desc: 'Crisp red apple', popular: false },
-            { id: 12, name: 'Fruit Salad', category: 'fruits', price: 15, img: 'https://picsum.photos/seed/fruslad1/400/300', desc: 'Mixed seasonal fruit salad', popular: true },
-            { id: 13, name: 'Popcorn', category: 'snacks', price: 8, img: 'https://picsum.photos/seed/popcorn1/400/300', desc: 'Lightly salted freshly popped popcorn', popular: false },
-            { id: 14, name: 'Samosa', category: 'snacks', price: 10, img: 'https://picsum.photos/seed/samosa01/400/300', desc: 'Crispy samosa with savory filling', popular: true },
-            { id: 15, name: 'Muffin', category: 'snacks', price: 8, img: 'https://picsum.photos/seed/muffin001/400/300', desc: 'Blueberry or chocolate chip muffin', popular: false },
-            { id: 16, name: 'Yogurt Cup', category: 'snacks', price: 10, img: 'https://picsum.photos/seed/yogurt01/400/300', desc: 'Creamy yogurt with granola topping', popular: false },
-            { id: 17, name: 'Ice Cream', category: 'treats', price: 12, img: 'https://picsum.photos/seed/icecream1/400/300', desc: 'Vanilla, chocolate, or strawberry scoop', popular: true },
-            { id: 18, name: 'Cake Slice', category: 'treats', price: 15, img: 'https://picsum.photos/seed/cakeslc1/400/300', desc: 'Homemade chocolate cake slice', popular: true },
-            { id: 19, name: 'Cookie Pack', category: 'treats', price: 8, img: 'https://picsum.photos/seed/cookie01/400/300', desc: '3 freshly baked assorted cookies', popular: false },
-            { id: 20, name: 'Fruit Punch', category: 'drinks', price: 10, img: 'https://picsum.photos/seed/frpunch1/400/300', desc: 'Sweet tropical fruit punch', popular: false },
-        ];
+        let menuItems = [];
 
         // ===== STATE =====
-        let currentUser = JSON.parse(localStorage.getItem('ltUser') || 'null');
+        let currentUser = null;
         let cart = JSON.parse(localStorage.getItem('ltCart') || '[]');
         let orders = JSON.parse(localStorage.getItem('ltOrders') || '[]');
         let activeCategory = 'all';
@@ -1618,6 +1699,9 @@
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('registerForm').addEventListener('submit', handleRegister);
             document.getElementById('createStaffForm').addEventListener('submit', createStaffAccount);
+            document.getElementById('menuItemForm').addEventListener('submit', submitMenuChange);
+            document.getElementById('menuItemSelect').addEventListener('change', selectMenuItem);
+            document.getElementById('menuImageFile').addEventListener('change', uploadMenuImage);
             document.getElementById('contactForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 showToast('Message sent! We will get back to you soon.', 'success');
@@ -1667,12 +1751,12 @@
             document.getElementById('checkoutDate').min = today;
             document.getElementById('checkoutDate').value = today;
 
-            renderPopularMenu();
+            loadMenuItems();
             updateCartBadge();
             updateHeaderForUser();
 
             // If already logged in, restore the current account role from the server.
-            if (currentUser && authToken) {
+            if (authToken) {
                 apiCall('/api/me').then(function (user) {
                     currentUser = user;
                     localStorage.setItem('ltUser', JSON.stringify(user));
@@ -1681,6 +1765,8 @@
                 }).catch(function () {
                     logout();
                 });
+            } else {
+                localStorage.removeItem('ltUser');
             }
 
             if (window.location.hash === '#login') showAuth();
@@ -1760,6 +1846,11 @@
 
         function addToCart(itemId) {
             if (!currentUser) { showAuth(); return; }
+            var menuItem = menuItems.find(function (item) { return Number(item.id) === Number(itemId); });
+            if (!menuItem || !menuItem.is_available) {
+                showToast(menuItem ? 'This food is currently out of stock.' : 'This food is no longer on the menu.', 'warning');
+                return;
+            }
             var existing = null;
             for (var i = 0; i < cart.length; i++) {
                 if (cart[i].id === itemId) { existing = cart[i]; break; }
@@ -1852,17 +1943,18 @@
                 }
                 if (!item) continue;
                 html += '<div class="flex gap-4 items-center p-3 rounded-xl" style="background:var(--bg)">' +
-                    '<img src="' + item.img + '" alt="' + item.name + '" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">' +
+                    '<img src="' + escapeHtml(item.img) + '" alt="' + escapeHtml(item.name) + '" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">' +
                     '<div class="flex-1 min-w-0">' +
-                    '<h4 class="font-bold text-sm truncate" style="color:var(--text)">' + item.name + '</h4>' +
-                    '<p class="text-sm font-semibold" style="color:var(--primary)">ZMW ' + item.price.toFixed(2) + '</p>' +
+                    '<h4 class="font-bold text-sm truncate" style="color:var(--text)">' + escapeHtml(item.name) + '</h4>' +
+                    '<p class="text-sm font-semibold" style="color:var(--primary)">ZMW ' + Number(item.price).toFixed(2) + '</p>' +
+                    (!item.is_available ? '<p class="text-xs font-bold" style="color:#b42318">Out of stock. Remove this item before checkout.</p>' : '') +
                     '<div class="qty-stepper mt-2">' +
                     '<button class="qty-btn" onclick="updateCartQty(' + item.id + ',-1)">-</button>' +
                     '<span class="qty-value">' + c.qty + '</span>' +
                     '<button class="qty-btn" onclick="updateCartQty(' + item.id + ',1)">+</button>' +
                     '</div></div>' +
                     '<div class="text-right flex-shrink-0">' +
-                    '<p class="font-bold" style="color:var(--text)">ZMW ' + (item.price * c.qty).toFixed(2) + '</p>' +
+                    '<p class="font-bold" style="color:var(--text)">ZMW ' + (Number(item.price) * c.qty).toFixed(2) + '</p>' +
                     '<button class="mt-2 text-sm" style="color:var(--text-muted)" onclick="removeFromCart(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>' +
                     '</div></div>';
             }
@@ -1972,18 +2064,19 @@
             var loginBtn = document.getElementById('headerLoginBtn');
 
             if (isLoggedIn) {
-                var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
                 if (currentUser.role === 'admin' || currentUser.role === 'staff') {
-                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>' + (currentUser.role === 'admin' ? 'Admin' : 'Staff');
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>' + (currentUser.role === 'admin' ? 'Admin Dashboard' : 'Staff Dashboard');
                     loginBtn.onclick = function (e) { e.preventDefault(); showStaffPortal(); };
                 } else {
-                    loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
+                    loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>My Dashboard';
                     loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
                 }
             } else {
                 loginBtn.innerHTML = 'Login';
                 loginBtn.onclick = function (e) { e.preventDefault(); showAuth(); };
             }
+
+            updateMobileAccountNavigation();
 
             // Update all "Order Now" / "Start Ordering" buttons site-wide
             var orderLinks = document.querySelectorAll('[onclick*="showAuth()"]');
@@ -1997,33 +2090,45 @@
         }
 
         function updateLoggedInUI() {
-            var isLoggedIn = !!currentUser;
+            updateHeaderForUser();
+        }
 
-            // Header login button
-            var loginBtn = document.getElementById('headerLoginBtn');
-            if (isLoggedIn) {
-                var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
-                if (currentUser.role === 'admin' || currentUser.role === 'staff') {
-                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>' + (currentUser.role === 'admin' ? 'Admin' : 'Staff');
-                    loginBtn.onclick = function (e) { e.preventDefault(); showStaffPortal(); };
-                } else {
-                    loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
-                    loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
-                }
+        function updateMobileAccountNavigation() {
+            var accountLink = document.getElementById('mobileAccountLink');
+            var logoutLink = document.getElementById('mobileLogoutLink');
+            var accountLabel = accountLink.querySelector('span');
+            var accountIcon = accountLink.querySelector('i');
+
+            if (!currentUser) {
+                accountLabel.textContent = 'Login';
+                accountIcon.className = 'fas fa-sign-in-alt w-6 text-center';
+                accountLink.onclick = function (e) {
+                    e.preventDefault();
+                    closeMobileNav();
+                    showAuth();
+                };
+                logoutLink.style.display = 'none';
+                return;
+            }
+
+            if (currentUser.role === 'admin' || currentUser.role === 'staff') {
+                accountLabel.textContent = currentUser.role === 'admin' ? 'Admin Dashboard' : 'Staff Dashboard';
+                accountIcon.className = 'fas fa-user-shield w-6 text-center';
+                accountLink.onclick = function (e) {
+                    e.preventDefault();
+                    closeMobileNav();
+                    showStaffPortal();
+                };
             } else {
-                loginBtn.innerHTML = 'Login';
-                loginBtn.onclick = function (e) { e.preventDefault(); showAuth(); };
+                accountLabel.textContent = 'My Dashboard';
+                accountIcon.className = 'fas fa-user w-6 text-center';
+                accountLink.onclick = function (e) {
+                    e.preventDefault();
+                    closeMobileNav();
+                    showDashboard();
+                };
             }
-
-            // All "Order Now" links — update onclick
-            var orderLinks = document.querySelectorAll('[onclick*="showAuth()"]');
-            for (var i = 0; i < orderLinks.length; i++) {
-                if (isLoggedIn) {
-                    orderLinks[i].setAttribute('onclick', "event.preventDefault();showDashboard()");
-                } else {
-                    orderLinks[i].setAttribute('onclick', "event.preventDefault();showAuth()");
-                }
-            }
+            logoutLink.style.display = 'flex';
         }
 
         // ===== PASSWORD STRENGTH =====
@@ -2099,6 +2204,21 @@
             document.getElementById('staffPortalTitle').textContent = currentUser.role === 'admin' ? 'Administrator Portal' : 'Staff Portal';
             document.getElementById('chefName').textContent = currentUser.full_name || (currentUser.role === 'admin' ? 'Administrator' : 'Staff member');
             document.getElementById('adminUserManagement').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+            document.getElementById('adminMenuReview').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+            document.getElementById('menuAccessMessage').textContent = currentUser.role === 'admin'
+                ? 'Administrator changes are published immediately. Staff changes require your approval.'
+                : 'Request administrator approval to access menu controls. Each menu change will also require approval.';
+            if (currentUser.role === 'admin') {
+                document.getElementById('requestMenuAccessButton').style.display = 'none';
+                document.getElementById('menuControls').style.display = 'block';
+                document.getElementById('submitMenuChangeButton').textContent = 'Publish menu change';
+                populateMenuItemSelect();
+                loadMyMenuChanges();
+                loadAdminMenuReviews();
+            } else {
+                document.getElementById('requestMenuAccessButton').style.display = 'inline-flex';
+                loadMenuAccess();
+            }
             loadChefOrders();
             if (currentUser.role === 'admin') loadAdminUsers();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2108,11 +2228,41 @@
             if (!currentUser) { showAuth(); return; }
             hideAllSections();
             document.getElementById('menuSection').style.display = 'block';
-            renderMenu();
+            if (menuItems.length === 0) {
+                document.getElementById('menuGrid').innerHTML = '<div class="col-span-full text-center py-16" style="color:var(--text-muted)">Menu items are loading. Please try again in a moment.</div>';
+                loadMenuItems();
+            } else {
+                renderMenu();
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ===== MENU RENDERING =====
+        function loadMenuItems() {
+            return apiCall('/api/menu').then(function (items) {
+                if (!Array.isArray(items)) throw new Error('The menu response is invalid.');
+                menuItems = items;
+                renderPopularMenu();
+                renderMenu();
+                renderCart();
+                populateMenuItemSelect();
+            }).catch(function (err) {
+                console.error('Failed to load menu:', err);
+                menuItems = [];
+                document.getElementById('popularMenuGrid').innerHTML = '<p class="col-span-full text-center" style="color:var(--text-muted)">Menu is temporarily unavailable.</p>';
+                document.getElementById('menuGrid').innerHTML = '<p class="col-span-full text-center py-12" style="color:var(--text-muted)">Menu is temporarily unavailable. Please try again later.</p>';
+                showToast(err.message || 'Unable to load the menu.', 'error');
+            });
+        }
+
+        function menuPriceMarkup(item) {
+            if (item.promo_active) {
+                return '<span class="flex flex-col"><span class="font-display font-bold text-xl" style="color:var(--primary)">ZMW ' + Number(item.price).toFixed(2) + '</span>' +
+                    '<span class="text-xs line-through" style="color:var(--text-muted)">ZMW ' + Number(item.base_price).toFixed(2) + '</span></span>';
+            }
+            return '<span class="font-display font-bold text-xl" style="color:var(--primary)">ZMW ' + Number(item.price).toFixed(2) + '</span>';
+        }
+
         function renderPopularMenu() {
             var grid = document.getElementById('popularMenuGrid');
             var popular = [];
@@ -2120,6 +2270,10 @@
                 if (menuItems[i].popular) popular.push(menuItems[i]);
             }
             popular = popular.slice(0, 6);
+            if (!popular.length) {
+                grid.innerHTML = '<p class="col-span-full text-center" style="color:var(--text-muted)">No featured foods are available right now.</p>';
+                return;
+            }
 
             var html = '';
             for (var i = 0; i < popular.length; i++) {
@@ -2127,16 +2281,18 @@
                 var delayClass = 'reveal-delay-' + ((i % 4) + 1);
                 html += '<div class="card-elevated menu-card overflow-hidden reveal ' + delayClass + '">' +
                     '<div class="relative overflow-hidden">' +
-                    '<img src="' + item.img + '" alt="' + item.name + '" class="menu-card-img" loading="lazy">' +
+                    '<img src="' + escapeHtml(item.img) + '" alt="' + escapeHtml(item.name) + '" class="menu-card-img" loading="lazy">' +
                     '<div class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold" style="background:var(--accent);color:#1a472a">Popular</div>' +
+                    (item.promo_active ? '<div class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold" style="background:#fff;color:#b42318">' + Number(item.promo_percent) + '% off</div>' : '') +
                     '</div>' +
                     '<div class="p-5">' +
-                    '<h4 class="font-bold text-lg mb-1" style="color:var(--text)">' + item.name + '</h4>' +
-                    '<p class="text-sm mb-3" style="color:var(--text-muted)">' + item.desc + '</p>' +
+                    '<h4 class="font-bold text-lg mb-1" style="color:var(--text)">' + escapeHtml(item.name) + '</h4>' +
+                    '<p class="text-sm mb-3" style="color:var(--text-muted)">' + escapeHtml(item.desc) + '</p>' +
                     '<div class="flex items-center justify-between">' +
-                    '<span class="font-display font-bold text-xl" style="color:var(--primary)">ZMW ' + item.price.toFixed(2) + '</span>' +
-                    '<button class="w-10 h-10 rounded-xl flex items-center justify-center transition-all" style="background:var(--primary);color:#fff" onclick="addToCart(' + item.id + ')" aria-label="Add ' + item.name + ' to cart">' +
-                    '<i class="fas fa-plus"></i></button>' +
+                    menuPriceMarkup(item) +
+                    (item.is_available
+                        ? '<button class="w-10 h-10 rounded-xl flex items-center justify-center transition-all" style="background:var(--primary);color:#fff" onclick="addToCart(' + Number(item.id) + ')" aria-label="Add ' + escapeHtml(item.name) + ' to cart"><i class="fas fa-plus"></i></button>'
+                        : '<span class="text-sm font-bold" style="color:#b42318">Out of stock</span>') +
                     '</div></div></div>';
             }
             grid.innerHTML = html;
@@ -2173,16 +2329,22 @@
                 }
                 html += '<div class="card-elevated menu-card overflow-hidden">' +
                     '<div class="relative overflow-hidden">' +
-                    '<img src="' + item.img + '" alt="' + item.name + '" class="menu-card-img" loading="lazy">' +
+                    '<img src="' + escapeHtml(item.img) + '" alt="' + escapeHtml(item.name) + '" class="menu-card-img" loading="lazy">' +
                     '<div class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold" style="background:var(--primary);color:#fff">' + (catLabels[item.category] || item.category) + '</div>';
                 if (item.popular) {
                     html += '<div class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold" style="background:var(--accent);color:#1a472a">Popular</div>';
                 }
+                if (item.promo_active) {
+                    html += '<div class="absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-bold" style="background:#fff;color:#b42318">' + Number(item.promo_percent) + '% off</div>';
+                }
                 html += '</div><div class="p-5">' +
-                    '<h4 class="font-bold text-lg mb-1" style="color:var(--text)">' + item.name + '</h4>' +
-                    '<p class="text-sm mb-3" style="color:var(--text-muted)">' + item.desc + '</p>' +
+                    '<h4 class="font-bold text-lg mb-1" style="color:var(--text)">' + escapeHtml(item.name) + '</h4>' +
+                    '<p class="text-sm mb-3" style="color:var(--text-muted)">' + escapeHtml(item.desc) + '</p>' +
                     '<div class="flex items-center justify-between">' +
-                    '<span class="font-display font-bold text-xl" style="color:var(--primary)">ZMW ' + item.price.toFixed(2) + '</span>';
+                    menuPriceMarkup(item);
+                if (!item.is_available) {
+                    html += '<span class="text-sm font-bold" style="color:#b42318">Out of stock</span>';
+                } else
                 if (inCart) {
                     html += '<div class="qty-stepper">' +
                         '<button class="qty-btn" onclick="updateCartQty(' + item.id + ',-1);renderMenu()">-</button>' +
@@ -2190,7 +2352,7 @@
                         '<button class="qty-btn" onclick="updateCartQty(' + item.id + ',1);renderMenu()">+</button>' +
                         '</div>';
                 } else {
-                    html += '<button class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="background:var(--primary);color:#fff" onclick="addToCart(' + item.id + ');renderMenu()">' +
+                    html += '<button class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="background:var(--primary);color:#fff" onclick="addToCart(' + Number(item.id) + ');renderMenu()">' +
                         '<i class="fas fa-plus mr-1"></i>Add</button>';
                 }
                 html += '</div></div></div>';
@@ -2343,6 +2505,269 @@
                     '"': '&quot;',
                     "'": '&#39;'
                 }[character];
+            });
+        }
+
+        function populateMenuItemSelect() {
+            var select = document.getElementById('menuItemSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">Create a new food</option>' + menuItems.map(function (item) {
+                return '<option value="' + Number(item.id) + '">' + escapeHtml(item.name) + '</option>';
+            }).join('');
+        }
+
+        function resetMenuItemForm() {
+            document.getElementById('menuItemForm').reset();
+            document.getElementById('menuItemId').value = '';
+            document.getElementById('menuItemSelect').value = '';
+            document.getElementById('menuItemAvailable').checked = true;
+            document.getElementById('menuImageFile').value = '';
+            document.getElementById('menuImagePreview').style.display = 'none';
+            document.getElementById('submitMenuChangeButton').textContent = currentUser?.role === 'admin'
+                ? 'Publish menu change'
+                : 'Submit menu change';
+        }
+
+        function selectMenuItem() {
+            var selectedId = Number(document.getElementById('menuItemSelect').value);
+            var item = menuItems.find(function (entry) { return Number(entry.id) === selectedId; });
+            if (!item) {
+                resetMenuItemForm();
+                return;
+            }
+            document.getElementById('menuItemId').value = item.id;
+            document.getElementById('menuItemName').value = item.name;
+            document.getElementById('menuItemCategory').value = item.category;
+            document.getElementById('menuItemDescription').value = item.desc;
+            document.getElementById('menuItemPrice').value = Number(item.base_price).toFixed(2);
+            document.getElementById('menuItemImage').value = item.img;
+            document.getElementById('menuItemPopular').checked = item.popular;
+            document.getElementById('menuItemAvailable').checked = item.is_available;
+            document.getElementById('menuPromoPercent').value = item.promo_percent || '';
+            document.getElementById('menuPromoStart').value = item.promo_start || '';
+            document.getElementById('menuPromoEnd').value = item.promo_end || '';
+            var preview = document.getElementById('menuImagePreview');
+            preview.src = item.img;
+            preview.style.display = 'block';
+        }
+
+        function loadMenuAccess() {
+            apiCall('/api/menu/access').then(function (access) {
+                var message = document.getElementById('menuAccessMessage');
+                var button = document.getElementById('requestMenuAccessButton');
+                if (access.status === 'approved') {
+                    message.textContent = 'Menu controls approved for this login session. Every change is sent to an administrator for review.';
+                    button.style.display = 'none';
+                    document.getElementById('menuControls').style.display = 'block';
+                    document.getElementById('submitMenuChangeButton').textContent = 'Submit for admin approval';
+                    populateMenuItemSelect();
+                    loadMyMenuChanges();
+                    return;
+                }
+
+                document.getElementById('menuControls').style.display = 'none';
+                button.style.display = 'inline-flex';
+                if (access.status === 'pending') {
+                    message.textContent = 'Your request is waiting for administrator approval.';
+                    button.textContent = 'Check approval status';
+                    button.onclick = loadMenuAccess;
+                } else if (access.status === 'denied') {
+                    message.textContent = 'Your previous request was denied. You can request menu access again.';
+                    button.textContent = 'Request Menu Access';
+                    button.onclick = requestMenuAccess;
+                } else {
+                    message.textContent = 'Menu controls require administrator approval for this login session.';
+                    button.textContent = 'Request Menu Access';
+                    button.onclick = requestMenuAccess;
+                }
+            }).catch(function (err) {
+                console.error('Failed to check menu access:', err);
+                showToast(err.message, 'error');
+            });
+        }
+
+        function requestMenuAccess() {
+            var button = document.getElementById('requestMenuAccessButton');
+            button.disabled = true;
+            apiCall('/api/menu/access-requests', { method: 'POST', body: {} }).then(function () {
+                showToast('Menu access request sent to an administrator.', 'success');
+                loadMenuAccess();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            }).finally(function () {
+                button.disabled = false;
+            });
+        }
+
+        async function uploadMenuImage(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                event.target.value = '';
+                showToast('Choose a JPG, PNG, or WebP image.', 'error');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                event.target.value = '';
+                showToast('Image must be 5 MB or smaller.', 'error');
+                return;
+            }
+
+            try {
+                var signature = await apiCall('/api/menu/upload-signature', { method: 'POST', body: {} });
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', signature.apiKey);
+                formData.append('timestamp', String(signature.timestamp));
+                formData.append('folder', signature.folder);
+                formData.append('signature', signature.signature);
+
+                var response = await fetch('https://api.cloudinary.com/v1_1/' + encodeURIComponent(signature.cloudName) + '/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                var result = await response.json();
+                if (!response.ok || !result.secure_url) {
+                    throw new Error(result.error?.message || 'Image upload failed.');
+                }
+                document.getElementById('menuItemImage').value = result.secure_url;
+                var preview = document.getElementById('menuImagePreview');
+                preview.src = result.secure_url;
+                preview.style.display = 'block';
+                showToast('Image uploaded. Submit the menu change for approval.', 'success');
+            } catch (error) {
+                console.error('Food image upload failed:', error);
+                showToast(error.message || 'Image upload failed.', 'error');
+                event.target.value = '';
+            }
+        }
+
+        function submitMenuChange(event) {
+            event.preventDefault();
+            var itemId = document.getElementById('menuItemId').value;
+            var payload = {
+                itemId: itemId || null,
+                name: document.getElementById('menuItemName').value,
+                category: document.getElementById('menuItemCategory').value,
+                description: document.getElementById('menuItemDescription').value,
+                price: Number(document.getElementById('menuItemPrice').value),
+                image_url: document.getElementById('menuItemImage').value,
+                popular: document.getElementById('menuItemPopular').checked,
+                is_available: document.getElementById('menuItemAvailable').checked,
+                promo_percent: document.getElementById('menuPromoPercent').value,
+                promo_start: document.getElementById('menuPromoStart').value,
+                promo_end: document.getElementById('menuPromoEnd').value
+            };
+            var button = document.getElementById('submitMenuChangeButton');
+            button.disabled = true;
+            apiCall('/api/menu/changes', { method: 'POST', body: payload }).then(function (result) {
+                resetMenuItemForm();
+                if (result.status === 'approved') {
+                    showToast('Menu item published.', 'success');
+                    loadMenuItems();
+                    if (currentUser.role === 'admin') loadAdminMenuReviews();
+                } else {
+                    showToast('Menu change submitted. It will appear after an administrator approves it.', 'success');
+                    loadMyMenuChanges();
+                    loadAdminMenuReviews();
+                }
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            }).finally(function () {
+                button.disabled = false;
+            });
+        }
+
+        function loadMyMenuChanges() {
+            apiCall('/api/menu/changes/mine').then(function (changes) {
+                var container = document.getElementById('myMenuChanges');
+                if (!changes.length) {
+                    container.innerHTML = '<p class="text-sm" style="color:var(--text-muted)">No submitted menu changes yet.</p>';
+                    return;
+                }
+                container.innerHTML = changes.map(function (change) {
+                    var color = change.status === 'approved' ? '#218838' : change.status === 'denied' ? '#b42318' : '#9a6e04';
+                    var note = change.review_note ? '<p class="text-sm mt-1" style="color:var(--text-muted)">Admin note: ' + escapeHtml(change.review_note) + '</p>' : '';
+                    return '<div class="rounded-xl p-4" style="background:var(--bg)"><div class="flex justify-between gap-3">' +
+                        '<span class="font-bold" style="color:var(--text)">' + escapeHtml(change.payload.name) + ' (' + (change.action === 'create' ? 'new food' : 'update') + ')</span>' +
+                        '<span class="font-bold capitalize" style="color:' + color + '">' + escapeHtml(change.status) + '</span></div>' +
+                        '<p class="text-sm" style="color:var(--text-muted)">Submitted ' + escapeHtml(change.created_at) + '</p>' + note + '</div>';
+                }).join('');
+            }).catch(function (err) {
+                console.error('Failed to load menu change requests:', err);
+                document.getElementById('myMenuChanges').innerHTML = '<p class="text-sm" style="color:#b42318">Unable to load menu change requests.</p>';
+                showToast(err.message, 'error');
+            });
+        }
+
+        function loadAdminMenuReviews() {
+            Promise.all([
+                apiCall('/api/admin/menu/access-requests'),
+                apiCall('/api/admin/menu/changes')
+            ]).then(function (results) {
+                var accessRequests = results[0];
+                var changes = results[1];
+                var accessContainer = document.getElementById('pendingMenuAccessRequests');
+                var changesContainer = document.getElementById('pendingMenuChanges');
+
+                accessContainer.innerHTML = accessRequests.length ? accessRequests.map(function (request) {
+                    return '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl p-4" style="background:var(--bg)">' +
+                        '<div><div class="font-bold" style="color:var(--text)">' + escapeHtml(request.full_name || request.username) + '</div>' +
+                        '<div class="text-sm" style="color:var(--text-muted)">' + escapeHtml(request.username) + ' requested menu access for this login session.</div></div>' +
+                        '<div class="flex gap-2"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuAccess(' + Number(request.id) + ',&#39;approved&#39;)">Approve</button>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuAccess(' + Number(request.id) + ',&#39;denied&#39;)">Deny</button></div></div>';
+                }).join('') : '<p class="text-sm" style="color:var(--text-muted)">No pending access requests.</p>';
+
+                changesContainer.innerHTML = changes.length ? changes.map(function (change) {
+                    var item = change.payload;
+                    var previous = change.action === 'update'
+                        ? '<p class="text-sm mt-2" style="color:var(--text-muted)">Current: ' + escapeHtml(change.current_name) + ', ZMW ' + Number(change.current_price).toFixed(2) +
+                            ', ' + (change.current_is_available ? 'in stock' : 'out of stock') + '</p>'
+                        : '';
+                    var discount = item.promo_percent ? '<p class="text-sm" style="color:var(--text-muted)">Promotion: ' + Number(item.promo_percent) + '% off' +
+                        (item.promo_start ? ' from ' + escapeHtml(item.promo_start) : '') +
+                        (item.promo_end ? ' until ' + escapeHtml(item.promo_end) : '') + '</p>' : '';
+                    return '<div class="rounded-xl p-4" style="background:var(--bg)"><div class="flex flex-col sm:flex-row gap-4">' +
+                        '<img src="' + escapeHtml(item.image_url) + '" alt="" class="w-24 h-24 rounded-xl object-cover">' +
+                        '<div class="flex-1"><div class="font-bold text-lg" style="color:var(--text)">' + escapeHtml(item.name) + '</div>' +
+                        '<p class="text-sm" style="color:var(--text-muted)">' + escapeHtml(item.category) + ' · ZMW ' + Number(item.price).toFixed(2) +
+                        ' · ' + (item.is_available ? 'In stock' : 'Out of stock') + ' · Submitted by ' + escapeHtml(change.full_name || change.username) + '</p>' +
+                        '<p class="text-sm" style="color:var(--text-muted)">' + escapeHtml(item.description) + '</p>' + previous + discount +
+                        '<label class="block text-xs mt-3" for="menu-review-note-' + Number(change.id) + '" style="color:var(--text-muted)">Optional note for the staff member</label>' +
+                        '<input id="menu-review-note-' + Number(change.id) + '" class="form-input mt-1" maxlength="500" placeholder="Review note">' +
+                        '<div class="flex gap-2 mt-3"><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#218838" onclick="reviewMenuChange(' + Number(change.id) + ',&#39;approved&#39;)">Approve &amp; publish</button>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:#b42318" onclick="reviewMenuChange(' + Number(change.id) + ',&#39;denied&#39;)">Deny</button></div>' +
+                        '</div></div></div>';
+                }).join('') : '<p class="text-sm" style="color:var(--text-muted)">No menu changes awaiting approval.</p>';
+            }).catch(function (err) {
+                console.error('Failed to load admin menu review queue:', err);
+                showToast(err.message, 'error');
+            });
+        }
+
+        function reviewMenuAccess(requestId, decision) {
+            apiCall('/api/admin/menu/access-requests/' + requestId, {
+                method: 'PUT',
+                body: { decision: decision }
+            }).then(function () {
+                showToast('Menu access request ' + decision + '.', 'success');
+                loadAdminMenuReviews();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            });
+        }
+
+        function reviewMenuChange(changeId, decision) {
+            var noteInput = document.getElementById('menu-review-note-' + changeId);
+            apiCall('/api/admin/menu/changes/' + changeId + '/review', {
+                method: 'PUT',
+                body: { decision: decision, reviewNote: noteInput ? noteInput.value.trim() : '' }
+            }).then(function () {
+                showToast(decision === 'approved' ? 'Menu change approved and published.' : 'Menu change denied.', 'success');
+                loadAdminMenuReviews();
+                loadMenuItems();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
             });
         }
 
@@ -2750,11 +3175,7 @@
             // Build items array for backend
             var items = [];
             for (var i = 0; i < cart.length; i++) {
-                var item = null;
-                for (var j = 0; j < menuItems.length; j++) {
-                    if (menuItems[j].id === cart[i].id) { item = menuItems[j]; break; }
-                }
-                if (item) items.push({ name: item.name, price: item.price, quantity: cart[i].qty });
+                items.push({ id: cart[i].id, quantity: cart[i].qty });
             }
 
             apiCall('/api/orders', {

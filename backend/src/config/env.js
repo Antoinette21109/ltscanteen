@@ -17,5 +17,8 @@ export const env = {
   ZYNLE_MERCHANT_ID: process.env.ZYNLE_MERCHANT_ID || '',
   ZYNLE_CALLBACK_URL: process.env.ZYNLE_CALLBACK_URL || '',
   PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
   CURRENCY: process.env.CURRENCY || 'ZMW',
 };

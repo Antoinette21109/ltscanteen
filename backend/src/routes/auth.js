@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
@@ -33,7 +34,7 @@ router.post('/api/register', [
     ).run(username, hashedPassword, full_name || '', phone || '', 'customer');
 
     const token = jwt.sign(
-      { id: result.lastInsertRowid, username, role: 'customer' },
+      { id: result.lastInsertRowid, username, role: 'customer', jti: crypto.randomUUID() },
       env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -86,7 +87,7 @@ router.post('/api/login', [
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: userRole },
+      { id: user.id, username: user.username, role: userRole, jti: crypto.randomUUID() },
       env.JWT_SECRET,
       { expiresIn: '7d' }
     );

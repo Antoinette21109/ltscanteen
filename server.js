@@ -9,6 +9,14 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import axios from 'axios';
 import crypto from 'crypto';
+import {
+  createCloudinaryUploadSignature,
+  formatMenuItem,
+  initializeMenuDatabase,
+  resolveOrderItems,
+  saveMenuItem,
+  validateMenuItem
+} from './backend/src/config/menu.js';
 
 // ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +41,7 @@ const db = new Database('./canteen.db');
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
+initializeMenuDatabase(db);
 
 // Create tables
 db.exec(`
@@ -100,7 +109,11 @@ const authenticateToken = (req, res, next) => {
       if (!account) {
         return res.status(401).json({ error: 'Account not found.' });
       }
-      req.user = { ...user, ...account };
+      req.user = {
+        ...user,
+        ...account,
+        authSessionId: user.jti || `${account.id}:${user.iat}`
+      };
       next();
     } catch (error) {
       console.error('Authentication error:', error);
@@ -121,6 +134,25 @@ const isStaffOrAdmin = (req, res, next) => {
     return res.status(403).json({ error: 'Staff access required.' });
   }
   next();
+};
+
+const requireMenuAccess = (req, res, next) => {
+  if (req.user.role === 'admin') {
+    return next();
+  }
+  try {
+    const access = db.prepare(`
+      SELECT status FROM menu_access_requests
+      WHERE user_id = ? AND session_id = ?
+    `).get(req.user.id, req.user.authSessionId);
+    if (access?.status !== 'approved') {
+      return res.status(403).json({ error: 'Administrator approval is required for menu controls in this session.' });
+    }
+    next();
+  } catch (error) {
+    console.error('Menu access verification error:', error);
+    res.status(500).json({ error: 'Unable to verify menu access.' });
+  }
 };
 
 // ============ HELPER FUNCTIONS ============
@@ -261,7 +293,7 @@ app.post('/api/register', [
     
     // Generate JWT
     const token = jwt.sign(
-      { id: result.lastInsertRowid, username, role: 'customer' },
+      { id: result.lastInsertRowid, username, role: 'customer', jti: crypto.randomUUID() },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -321,7 +353,7 @@ app.post('/api/login', [
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: userRole },
+      { id: user.id, username: user.username, role: userRole, jti: crypto.randomUUID() },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -428,6 +460,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/menu', (req, res) => {
+  try {
+    const menu = db.prepare('SELECT * FROM menu_items ORDER BY category, name').all();
+    res.json(menu.map((item) => formatMenuItem(item)));
+  } catch (error) {
+    console.error('Menu fetch error:', error);
+    res.status(500).json({ error: 'Unable to load the menu.' });
+  }
+});
+
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { items, paymentMethod, customerName, phoneNumber, userId, user } = req.body;
@@ -439,7 +481,13 @@ app.post('/create-checkout-session', async (req, res) => {
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
 
-    const total = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity || 1)), 0);
+    let order;
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const total = order.total;
     const orderNumber = generateOrderNumber();
     const resolvedCustomerName = customerName || user?.full_name || user?.username || 'Guest';
 
@@ -450,8 +498,8 @@ app.post('/create-checkout-session', async (req, res) => {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     const info = userId
-      ? insertOrder.run(orderNumber, userId, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending')
-      : insertOrder.run(orderNumber, resolvedCustomerName, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+      ? insertOrder.run(orderNumber, userId, resolvedCustomerName, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending')
+      : insertOrder.run(orderNumber, resolvedCustomerName, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
     const orderId = info.lastInsertRowid;
 
     try {
@@ -487,12 +535,18 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
     
-    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let order;
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const total = order.total;
     const orderNumber = generateOrderNumber();
     
     const insertOrder = db.prepare(`INSERT INTO orders (order_number, user_id, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    const info = insertOrder.run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const info = insertOrder.run(orderNumber, userId, customerName || req.user.username, phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
     const orderId = info.lastInsertRowid;
     
     try {
@@ -531,12 +585,18 @@ app.post('/api/guest-checkout', async (req, res) => {
     const phoneRegex = /^(09|07|096|097|095|076|077)\d{7,8}$/;
     if (!phoneRegex.test(phoneNumber)) return res.status(400).json({ error: 'Invalid Zambian phone number' });
     
-    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let order;
+    try {
+      order = resolveOrderItems(db, items);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const total = order.total;
     const orderNumber = generateOrderNumber();
     
     const insertOrder = db.prepare(`INSERT INTO orders (order_number, customer_name, customer_phone, items, total_amount, payment_method, payment_status, msisdn, status)
                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    const info = insertOrder.run(orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(items), total, paymentMethod, 'pending', phoneNumber, 'pending');
+    const info = insertOrder.run(orderNumber, customerName || 'Guest', phoneNumber, JSON.stringify(order.items), total, paymentMethod, 'pending', phoneNumber, 'pending');
     const orderId = info.lastInsertRowid;
     
     try {
@@ -614,6 +674,193 @@ app.get('/api/my-orders', authenticateToken, (req, res) => {
 });
 
 // Admin routes
+app.get('/api/menu/access', authenticateToken, isStaffOrAdmin, (req, res) => {
+  if (req.user.role === 'admin') {
+    return res.json({ status: 'approved', admin: true });
+  }
+  const access = db.prepare(`
+    SELECT status, requested_at, reviewed_at
+    FROM menu_access_requests
+    WHERE user_id = ? AND session_id = ?
+  `).get(req.user.id, req.user.authSessionId);
+  res.json(access || { status: 'not_requested' });
+});
+
+app.post('/api/menu/access-requests', authenticateToken, isStaffOrAdmin, (req, res) => {
+  if (req.user.role === 'admin') {
+    return res.json({ status: 'approved', admin: true });
+  }
+  try {
+    const existing = db.prepare(`
+      SELECT id, status FROM menu_access_requests
+      WHERE user_id = ? AND session_id = ?
+    `).get(req.user.id, req.user.authSessionId);
+    if (existing?.status === 'approved' || existing?.status === 'pending') {
+      return res.json({ status: existing.status });
+    }
+    if (existing) {
+      db.prepare(`
+        UPDATE menu_access_requests
+        SET status = 'pending', requested_at = CURRENT_TIMESTAMP, reviewed_by = NULL, reviewed_at = NULL
+        WHERE id = ?
+      `).run(existing.id);
+    } else {
+      db.prepare(`
+        INSERT INTO menu_access_requests (user_id, session_id)
+        VALUES (?, ?)
+      `).run(req.user.id, req.user.authSessionId);
+    }
+    res.status(201).json({ status: 'pending' });
+  } catch (error) {
+    console.error('Menu access request error:', error);
+    res.status(500).json({ error: 'Unable to request menu access.' });
+  }
+});
+
+app.post('/api/menu/upload-signature', authenticateToken, isStaffOrAdmin, requireMenuAccess, (req, res) => {
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    return res.status(503).json({ error: 'Image uploads are not configured. Contact the administrator.' });
+  }
+  const timestamp = Math.floor(Date.now() / 1000);
+  res.json({
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    apiKey: CLOUDINARY_API_KEY,
+    timestamp,
+    folder: 'ltscanteen/menu',
+    signature: createCloudinaryUploadSignature(CLOUDINARY_API_SECRET, timestamp)
+  });
+});
+
+app.get('/api/menu/changes/mine', authenticateToken, isStaffOrAdmin, (req, res) => {
+  const changes = db.prepare(`
+    SELECT id, item_id, action, payload, status, review_note, created_at, reviewed_at
+    FROM menu_change_requests WHERE user_id = ?
+    ORDER BY created_at DESC LIMIT 50
+  `).all(req.user.id).map((change) => ({ ...change, payload: JSON.parse(change.payload) }));
+  res.json(changes);
+});
+
+app.post('/api/menu/changes', authenticateToken, isStaffOrAdmin, requireMenuAccess, (req, res) => {
+  const itemId = req.body.itemId == null || req.body.itemId === '' ? null : Number(req.body.itemId);
+  if (itemId !== null && (!Number.isInteger(itemId) || itemId <= 0)) {
+    return res.status(400).json({ error: 'Invalid menu item ID.' });
+  }
+  const action = itemId === null ? 'create' : 'update';
+  let payload;
+  try {
+    payload = validateMenuItem(req.body);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  if (itemId !== null && !db.prepare('SELECT id FROM menu_items WHERE id = ?').get(itemId)) {
+    return res.status(404).json({ error: 'Menu item not found.' });
+  }
+  try {
+    if (req.user.role === 'admin') {
+      const savedId = saveMenuItem(db, itemId, payload);
+      return res.status(itemId === null ? 201 : 200).json({
+        status: 'approved',
+        item: formatMenuItem(db.prepare('SELECT * FROM menu_items WHERE id = ?').get(savedId))
+      });
+    }
+    const result = db.prepare(`
+      INSERT INTO menu_change_requests (user_id, session_id, item_id, action, payload)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(req.user.id, req.user.authSessionId, itemId, action, JSON.stringify(payload));
+    res.status(202).json({ status: 'pending', requestId: result.lastInsertRowid });
+  } catch (error) {
+    console.error('Menu change submission error:', error);
+    res.status(500).json({ error: 'Unable to submit menu change for review.' });
+  }
+});
+
+app.get('/api/admin/menu/access-requests', authenticateToken, isAdmin, (req, res) => {
+  const requests = db.prepare(`
+    SELECT r.id, r.user_id, r.session_id, r.status, r.requested_at,
+      u.full_name, u.username
+    FROM menu_access_requests r JOIN users u ON u.id = r.user_id
+    WHERE r.status = 'pending'
+    ORDER BY r.requested_at ASC
+  `).all();
+  res.json(requests);
+});
+
+app.put('/api/admin/menu/access-requests/:requestId', authenticateToken, isAdmin, [
+  body('decision').isIn(['approved', 'denied']).withMessage('Choose approve or deny')
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  const requestId = Number(req.params.requestId);
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ error: 'Invalid access request ID.' });
+  }
+  const result = db.prepare(`
+    UPDATE menu_access_requests
+    SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND status = 'pending'
+  `).run(req.body.decision, req.user.id, requestId);
+  if (!result.changes) {
+    return res.status(404).json({ error: 'Pending access request not found.' });
+  }
+  res.json({ status: req.body.decision });
+});
+
+app.get('/api/admin/menu/changes', authenticateToken, isAdmin, (req, res) => {
+  const changes = db.prepare(`
+    SELECT c.id, c.item_id, c.action, c.payload, c.created_at,
+      u.full_name, u.username, m.name AS current_name,
+      m.price AS current_price, m.description AS current_description,
+      m.image_url AS current_image_url, m.is_available AS current_is_available
+    FROM menu_change_requests c
+    JOIN users u ON u.id = c.user_id
+    LEFT JOIN menu_items m ON m.id = c.item_id
+    WHERE c.status = 'pending'
+    ORDER BY c.created_at ASC
+  `).all().map((change) => ({ ...change, payload: JSON.parse(change.payload) }));
+  res.json(changes);
+});
+
+app.put('/api/admin/menu/changes/:changeId/review', authenticateToken, isAdmin, [
+  body('decision').isIn(['approved', 'denied']).withMessage('Choose approve or deny'),
+  body('reviewNote').optional().isString().isLength({ max: 500 })
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  const changeId = Number(req.params.changeId);
+  if (!Number.isInteger(changeId) || changeId <= 0) {
+    return res.status(400).json({ error: 'Invalid menu change ID.' });
+  }
+  try {
+    const review = db.transaction(() => {
+      const change = db.prepare(`
+        SELECT * FROM menu_change_requests WHERE id = ? AND status = 'pending'
+      `).get(changeId);
+      if (!change) return false;
+      if (req.body.decision === 'approved') {
+        saveMenuItem(db, change.item_id, validateMenuItem(JSON.parse(change.payload)));
+      }
+      db.prepare(`
+        UPDATE menu_change_requests
+        SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(req.body.decision, req.body.reviewNote || null, req.user.id, changeId);
+      return true;
+    });
+    if (!review()) {
+      return res.status(404).json({ error: 'Pending menu change not found.' });
+    }
+    res.json({ status: req.body.decision });
+  } catch (error) {
+    console.error('Menu change review error:', error);
+    res.status(400).json({ error: error.message || 'Unable to review menu change.' });
+  }
+});
+
 app.get('/api/admin/orders', authenticateToken, isStaffOrAdmin, (req, res) => {
   const getOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC`);
   const orders = getOrders.all();
