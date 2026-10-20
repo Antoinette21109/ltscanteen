@@ -95,14 +95,30 @@ const authenticateToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid or expired token.' });
     }
-    req.user = user;
-    next();
+    try {
+      const account = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(user.id);
+      if (!account) {
+        return res.status(401).json({ error: 'Account not found.' });
+      }
+      req.user = { ...user, ...account };
+      next();
+    } catch (error) {
+      console.error('Authentication error:', error);
+      res.status(500).json({ error: 'Authentication failed.' });
+    }
   });
 };
 
 const isAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required.' });
+  }
+  next();
+};
+
+const isStaffOrAdmin = (req, res, next) => {
+  if (!['staff', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Staff access required.' });
   }
   next();
 };
@@ -270,7 +286,8 @@ app.post('/api/register', [
 // Login
 app.post('/api/login', [
   body('username').isEmail().withMessage('Please enter a valid email'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('password').notEmpty().withMessage('Password is required'),
+  body('role').optional().isIn(['parent', 'staff', 'admin']).withMessage('Please select a valid account type')
 ], async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
@@ -279,6 +296,7 @@ app.post('/api/login', [
   }
 
   const { username, password } = req.body;
+  const requestedRole = req.body.role || 'parent';
 
   try {
     // Find user
@@ -295,9 +313,15 @@ app.post('/api/login', [
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    const userRole = user.role === 'parent' ? 'customer' : user.role;
+    const expectedRole = requestedRole === 'parent' ? 'customer' : requestedRole;
+    if (userRole !== expectedRole) {
+      return res.status(403).json({ error: 'This account does not have access to the selected sign-in.' });
+    }
+
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, username: user.username, role: userRole },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -310,7 +334,7 @@ app.post('/api/login', [
         username: user.username,
         full_name: user.full_name,
         phone: user.phone,
-        role: user.role
+        role: userRole
       }
     });
   } catch (error) {
@@ -590,10 +614,46 @@ app.get('/api/my-orders', authenticateToken, (req, res) => {
 });
 
 // Admin routes
-app.get('/api/admin/orders', authenticateToken, isAdmin, (req, res) => {
+app.get('/api/admin/orders', authenticateToken, isStaffOrAdmin, (req, res) => {
   const getOrders = db.prepare(`SELECT * FROM orders ORDER BY created_at DESC`);
   const orders = getOrders.all();
   res.json(orders);
+});
+
+app.post('/api/admin/staff', authenticateToken, isAdmin, [
+  body('username').isEmail().withMessage('Please enter a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('full_name').optional().isString(),
+  body('phone').optional().isString()
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, password, full_name, phone } = req.body;
+  if (db.prepare('SELECT id FROM users WHERE username = ?').get(username)) {
+    return res.status(409).json({ error: 'An account with this email already exists.' });
+  }
+
+  try {
+    const result = db.prepare(
+      'INSERT INTO users (username, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)'
+    ).run(username, bcrypt.hashSync(password, 10), full_name || '', phone || '', 'staff');
+    res.status(201).json({
+      message: 'Staff account created successfully.',
+      user: {
+        id: result.lastInsertRowid,
+        username,
+        full_name: full_name || '',
+        phone: phone || '',
+        role: 'staff'
+      }
+    });
+  } catch (error) {
+    console.error('Staff account creation error:', error);
+    res.status(500).json({ error: 'Failed to create staff account.' });
+  }
 });
 
 app.get('/api/admin/users', authenticateToken, isAdmin, (req, res) => {
@@ -602,7 +662,42 @@ app.get('/api/admin/users', authenticateToken, isAdmin, (req, res) => {
   res.json(users);
 });
 
-app.put('/api/admin/orders/:orderId/status', authenticateToken, isAdmin, (req, res) => {
+app.put('/api/admin/users/:userId/role', authenticateToken, isAdmin, [
+  body('role').isIn(['customer', 'staff', 'admin']).withMessage('Invalid account role')
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const userId = Number(req.params.userId);
+  const { role } = req.body;
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'Invalid user ID.' });
+  }
+  if (userId === req.user.id) {
+    return res.status(400).json({ error: 'You cannot change your own account role.' });
+  }
+
+  try {
+    const target = db.prepare('SELECT id, role FROM users WHERE id = ?').get(userId);
+    if (!target) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    if (target.role === 'admin' && role !== 'admin' &&
+      db.prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'").get().count <= 1) {
+      return res.status(400).json({ error: 'The last administrator cannot be demoted.' });
+    }
+
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
+    res.json({ message: 'Account role updated successfully.' });
+  } catch (error) {
+    console.error('Account role update error:', error);
+    res.status(500).json({ error: 'Failed to update account role.' });
+  }
+});
+
+app.put('/api/admin/orders/:orderId/status', authenticateToken, isStaffOrAdmin, (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
   

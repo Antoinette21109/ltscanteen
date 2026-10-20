@@ -40,6 +40,13 @@ The frontend supports extensionless URLs for all pages (for example, `/about`,
 `/menu`, and `/contact`). Vercel uses `frontend/vercel.json` to rewrite these
 paths to the existing HTML files and redirect legacy `.html` URLs to the clean URLs.
 
+## Account roles
+
+Sign in as a parent, staff member, or administrator using the account's assigned
+role. Administrators can create staff accounts and manage account roles. Staff
+can view orders and update their statuses; only administrators can manage users
+and permissions. Role access is checked by the backend.
+
 ## Payment Integration
 
 This project is configured for Zynle only. All other payment gateways have been removed from the codebase. The order creation flow and checkout UI only support the `zynle` method.

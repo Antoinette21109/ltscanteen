@@ -758,8 +758,8 @@
                         onmouseout="this.style.color='var(--text)'" onclick="showHomePage()">Contact</a>
                     <button class="px-4 py-2 rounded-xl font-medium text-sm transition-all"
                         style="background:rgba(26,71,42,0.08);color:var(--primary);border:1px solid rgba(26,71,42,0.12)"
-                        onclick="event.preventDefault(); currentUser && currentUser.role === 'admin' ? showChefPortal() : showAuth()">
-                        Chef Portal
+                        onclick="event.preventDefault(); currentUser && ['staff', 'admin'].includes(currentUser.role) ? showStaffPortal() : showAuth()">
+                        Staff Portal
                     </button>
                     <button id="desktopThemeToggle" class="w-14 h-7 rounded-full relative transition-all cursor-pointer"
                         style="background:var(--border)" onclick="toggleTheme()" aria-label="Toggle dark mode">
@@ -959,7 +959,7 @@
                     <div class="text-center mb-8">
                         <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
                             style="background:linear-gradient(135deg,var(--primary),var(--primary-light))">
-                            <i class="fas fa-user text-white text-xl"></i>
+                            <i class="fas fa-user-lock text-white text-xl"></i>
                         </div>
                         <h2 class="font-display font-bold text-2xl" style="color:var(--text)" id="authTitle">Welcome
                             Back</h2>
@@ -971,6 +971,15 @@
                             data-tab="register" style="color:var(--text-muted)">Register</button>
                     </div>
                     <form id="loginForm" class="space-y-5">
+                        <div id="loginRoleSelector">
+                            <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Sign in as</label>
+                            <select class="form-input" id="loginRole" required>
+                                <option value="parent">Parent</option>
+                                <option value="staff">Staff</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                            <p class="text-xs mt-1" style="color:var(--text-muted)">Choose the account type assigned to you.</p>
+                        </div>
                         <div>
                             <label class="block mb-2 font-medium text-sm" style="color:var(--text)">Email
                                 Address</label>
@@ -1169,11 +1178,11 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
                             <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(255,255,255,0.12)">
-                                <i class="fas fa-user-chef text-2xl text-white"></i>
+                                <i class="fas fa-user-shield text-2xl text-white"></i>
                             </div>
                             <div>
-                                <h2 class="font-display font-bold text-xl sm:text-2xl text-white">Chef Portal</h2>
-                                <p class="text-white/70 text-sm" id="chefName">School Chef</p>
+                                <h2 class="font-display font-bold text-xl sm:text-2xl text-white" id="staffPortalTitle">Staff Portal</h2>
+                                <p class="text-white/70 text-sm" id="chefName">Order management</p>
                             </div>
                         </div>
                         <div class="flex gap-3">
@@ -1207,6 +1216,37 @@
                         <h3 class="font-display font-bold text-xl" style="color:var(--text)">Orders & Payment Status</h3>
                     </div>
                     <div id="chefOrdersList" class="space-y-3"></div>
+                </div>
+
+                <div class="card-elevated p-6 sm:p-8 mt-6" id="adminUserManagement" style="display:none">
+                    <div class="mb-6">
+                        <h3 class="font-display font-bold text-xl" style="color:var(--text)">Staff &amp; Account Access</h3>
+                        <p class="text-sm mt-1" style="color:var(--text-muted)">Only administrators can create staff accounts or change account roles.</p>
+                    </div>
+                    <form id="createStaffForm" class="grid sm:grid-cols-2 gap-4 mb-8">
+                        <div>
+                            <label for="staffName" class="block mb-2 font-medium text-sm" style="color:var(--text)">Full name</label>
+                            <input class="form-input" id="staffName" name="full_name" required>
+                        </div>
+                        <div>
+                            <label for="staffEmail" class="block mb-2 font-medium text-sm" style="color:var(--text)">Email address</label>
+                            <input class="form-input" id="staffEmail" name="username" type="email" required>
+                        </div>
+                        <div>
+                            <label for="staffPhone" class="block mb-2 font-medium text-sm" style="color:var(--text)">Phone number</label>
+                            <input class="form-input" id="staffPhone" name="phone" type="tel">
+                        </div>
+                        <div>
+                            <label for="staffPassword" class="block mb-2 font-medium text-sm" style="color:var(--text)">Initial password</label>
+                            <input class="form-input" id="staffPassword" name="password" type="password" minlength="6" required>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="submit" class="px-5 py-3 rounded-xl font-bold text-sm text-white" style="background:var(--primary)">
+                                <i class="fas fa-user-plus mr-2"></i>Create Staff Account
+                            </button>
+                        </div>
+                    </form>
+                    <div id="adminUsersList" class="space-y-3"></div>
                 </div>
             </div>
         </section>
@@ -1530,7 +1570,6 @@
 
             var url = API + endpoint;
             console.log('[API] Sending:', options.method || 'GET', url);
-            console.log('[API] Body:', options.body ? JSON.stringify(options.body) : 'none');
 
             try {
                 var resp = await fetch(url, {
@@ -1540,7 +1579,6 @@
                 });
                 console.log('[API] Response status:', resp.status, resp.statusText);
                 var text = await resp.text();
-                console.log('[API] Response body:', text);
                 if (!text) throw new Error('Server returned empty response');
                 var data;
                 try { data = JSON.parse(text); } catch (e) { throw new Error('Server returned non-JSON: ' + text.substring(0, 100)); }
@@ -1572,12 +1610,14 @@
                     tab.style.color = '#fff';
                     document.getElementById('loginForm').style.display = t === 'login' ? 'block' : 'none';
                     document.getElementById('registerForm').style.display = t === 'register' ? 'block' : 'none';
+                    document.getElementById('loginRoleSelector').style.display = t === 'login' ? 'block' : 'none';
                     document.getElementById('authTitle').textContent = t === 'login' ? 'Welcome Back' : 'Create Account';
                 });
             });
 
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('createStaffForm').addEventListener('submit', createStaffAccount);
             document.getElementById('contactForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 showToast('Message sent! We will get back to you soon.', 'success');
@@ -1631,15 +1671,14 @@
             updateCartBadge();
             updateHeaderForUser();
 
-            // If already logged in, restore session
+            // If already logged in, restore the current account role from the server.
             if (currentUser && authToken) {
-                // Verify token is still valid by hitting health endpoint
-                apiCall('/api/health').then(function () {
+                apiCall('/api/me').then(function (user) {
+                    currentUser = user;
+                    localStorage.setItem('ltUser', JSON.stringify(user));
                     updateHeaderForUser();
-                    // Update hero/nav buttons to go to dashboard instead of auth
                     updateLoggedInUI();
                 }).catch(function () {
-                    // Token expired, clear session
                     logout();
                 });
             }
@@ -1850,6 +1889,7 @@
             e.preventDefault();
             var email = document.getElementById('loginEmail').value.trim();
             var password = document.getElementById('loginPassword').value;
+            var role = document.getElementById('loginRole').value;
 
             var btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
@@ -1857,7 +1897,7 @@
 
             apiCall('/api/login', {
                 method: 'POST',
-                body: { username: email, password: password }
+                body: { username: email, password: password, role: role }
             }).then(function (data) {
                 authToken = data.token;
                 localStorage.setItem('ltToken', data.token);
@@ -1865,11 +1905,7 @@
                 localStorage.setItem('ltUser', JSON.stringify(data.user));
                 showToast('Welcome back, ' + (data.user.full_name || data.user.username) + '!', 'success');
                 updateHeaderForUser();
-                if (data.user.role === 'admin') {
-                    showChefPortal();
-                } else {
-                    showDashboard();
-                }
+                showDashboard();
             }).catch(function (err) {
                 showToast(err.message, 'error');
             }).finally(function () {
@@ -1937,9 +1973,9 @@
 
             if (isLoggedIn) {
                 var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
-                if (currentUser.role === 'admin') {
-                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Chef';
-                    loginBtn.onclick = function (e) { e.preventDefault(); showChefPortal(); };
+                if (currentUser.role === 'admin' || currentUser.role === 'staff') {
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>' + (currentUser.role === 'admin' ? 'Admin' : 'Staff');
+                    loginBtn.onclick = function (e) { e.preventDefault(); showStaffPortal(); };
                 } else {
                     loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
                     loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
@@ -1967,9 +2003,9 @@
             var loginBtn = document.getElementById('headerLoginBtn');
             if (isLoggedIn) {
                 var displayName = (currentUser.full_name || currentUser.name || 'User').split(' ')[0];
-                if (currentUser.role === 'admin') {
-                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>Chef';
-                    loginBtn.onclick = function (e) { e.preventDefault(); showChefPortal(); };
+                if (currentUser.role === 'admin' || currentUser.role === 'staff') {
+                    loginBtn.innerHTML = '<i class="fas fa-user-shield mr-2"></i>' + (currentUser.role === 'admin' ? 'Admin' : 'Staff');
+                    loginBtn.onclick = function (e) { e.preventDefault(); showStaffPortal(); };
                 } else {
                     loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i>' + displayName;
                     loginBtn.onclick = function (e) { e.preventDefault(); showDashboard(); };
@@ -2038,8 +2074,8 @@
 
         function showDashboard() {
             if (!currentUser) { showAuth(); return; }
-            if (currentUser.role === 'admin') {
-                showChefPortal();
+            if (currentUser.role === 'admin' || currentUser.role === 'staff') {
+                showStaffPortal();
                 return;
             }
             hideAllSections();
@@ -2053,15 +2089,18 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function showChefPortal() {
-            if (!currentUser || currentUser.role !== 'admin') {
+        function showStaffPortal() {
+            if (!currentUser || !['staff', 'admin'].includes(currentUser.role)) {
                 showAuth();
                 return;
             }
             hideAllSections();
             document.getElementById('chefDashboardSection').style.display = 'block';
-            document.getElementById('chefName').textContent = currentUser.full_name || 'School Chef';
+            document.getElementById('staffPortalTitle').textContent = currentUser.role === 'admin' ? 'Administrator Portal' : 'Staff Portal';
+            document.getElementById('chefName').textContent = currentUser.full_name || (currentUser.role === 'admin' ? 'Administrator' : 'Staff member');
+            document.getElementById('adminUserManagement').style.display = currentUser.role === 'admin' ? 'block' : 'none';
             loadChefOrders();
+            if (currentUser.role === 'admin') loadAdminUsers();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2295,6 +2334,96 @@
             document.getElementById('contact').style.display = '';
         }
 
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[character];
+            });
+        }
+
+        function loadAdminUsers() {
+            apiCall('/api/admin/users').then(function (users) {
+                var listEl = document.getElementById('adminUsersList');
+                if (!users.length) {
+                    listEl.innerHTML = '<p class="text-sm" style="color:var(--text-muted)">No accounts found.</p>';
+                    return;
+                }
+
+                listEl.innerHTML = users.map(function (user) {
+                    var role = user.role === 'parent' ? 'customer' : user.role;
+                    var isCurrentUser = Number(user.id) === Number(currentUser.id);
+                    return '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl p-4" style="background:var(--bg)">' +
+                        '<div><div class="font-bold" style="color:var(--text)">' + escapeHtml(user.full_name || user.username) + '</div>' +
+                        '<div class="text-sm" style="color:var(--text-muted)">' + escapeHtml(user.username) + '</div></div>' +
+                        '<div class="flex gap-2">' +
+                        '<select class="form-input" id="managed-role-' + Number(user.id) + '"' + (isCurrentUser ? ' disabled aria-label="Your account role"' : ' aria-label="Role for ' + escapeHtml(user.username) + '"') + '>' +
+                        '<option value="customer"' + (role === 'customer' ? ' selected' : '') + '>Parent</option>' +
+                        '<option value="staff"' + (role === 'staff' ? ' selected' : '') + '>Staff</option>' +
+                        '<option value="admin"' + (role === 'admin' ? ' selected' : '') + '>Administrator</option>' +
+                        '</select>' +
+                        '<button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateManagedUserRole(' + Number(user.id) + ')"' + (isCurrentUser ? ' disabled' : '') + '>Save</button>' +
+                        '</div></div>';
+                }).join('');
+            }).catch(function (err) {
+                console.error('Failed to load user accounts:', err);
+                document.getElementById('adminUsersList').innerHTML = '<p class="text-sm text-red-600">Unable to load accounts.</p>';
+                showToast(err.message, 'error');
+            });
+        }
+
+        function createStaffAccount(e) {
+            e.preventDefault();
+            var form = e.target;
+            var btn = form.querySelector('button[type="submit"]');
+            var payload = {
+                full_name: form.elements.full_name.value.trim(),
+                username: form.elements.username.value.trim(),
+                phone: form.elements.phone.value.trim(),
+                password: form.elements.password.value
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating account...';
+            apiCall('/api/admin/staff', { method: 'POST', body: payload }).then(function () {
+                form.reset();
+                showToast('Staff account created.', 'success');
+                loadAdminUsers();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            }).finally(function () {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create Staff Account';
+            });
+        }
+
+        function updateManagedUserRole(userId) {
+            var role = document.getElementById('managed-role-' + userId).value;
+            apiCall('/api/admin/users/' + userId + '/role', { method: 'PUT', body: { role: role } }).then(function () {
+                showToast('Account role updated.', 'success');
+                loadAdminUsers();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            });
+        }
+
+        function updateOrderStatus(orderId) {
+            var status = document.getElementById('order-status-' + orderId).value;
+            apiCall('/api/admin/orders/' + orderId + '/status', {
+                method: 'PUT',
+                body: { status: status }
+            }).then(function () {
+                showToast('Order status updated.', 'success');
+                loadChefOrders();
+            }).catch(function (err) {
+                showToast(err.message, 'error');
+            });
+        }
+
         function loadChefOrders() {
             apiCall('/api/admin/orders').then(function (orders) {
                 var listEl = document.getElementById('chefOrdersList');
@@ -2330,18 +2459,26 @@
                         '<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">' +
                         '<div>' +
                         '<div class="font-bold" style="color:var(--text)">' + (order.order_number || 'Order') + '</div>' +
-                        '<div class="text-sm" style="color:var(--text-muted)">' + order.customer_name + ' • ' + order.customer_phone + '</div>' +
+                        '<div class="text-sm" style="color:var(--text-muted)">' + escapeHtml(order.customer_name) + ' • ' + escapeHtml(order.customer_phone) + '</div>' +
                         '</div>' +
                         '<div class="flex flex-wrap gap-2">' +
                         '<span class="status-badge ' + paymentBadge + '">Payment: ' + (order.payment_status || 'pending') + '</span>' +
                         '<span class="status-badge ' + statusBadge + '">Order: ' + (order.status || 'pending') + '</span>' +
                         '</div>' +
                         '</div>' +
-                        '<div class="text-sm mb-2" style="color:var(--text-muted)">' + itemText + '</div>' +
+                        '<div class="text-sm mb-2" style="color:var(--text-muted)">' + escapeHtml(itemText) + '</div>' +
                         '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm" style="color:var(--text-muted)">' +
                         '<span>Total: <strong style="color:var(--text)">ZMW ' + Number(order.total_amount || 0).toFixed(2) + '</strong></span>' +
                         '<span>Method: <strong style="color:var(--text)">' + (order.payment_method || 'zynle').toUpperCase() + '</strong></span>' +
-                        '<span>Placed: ' + (order.created_at || '').replace('T', ' ').substring(0, 16) + '</span>' +
+                        '<span>Placed: ' + escapeHtml((order.created_at || '').replace('T', ' ').substring(0, 16)) + '</span>' +
+                        '</div>' +
+                        '<div class="flex flex-wrap items-center gap-2 mt-3">' +
+                        '<label class="text-sm font-medium" for="order-status-' + Number(order.id) + '" style="color:var(--text)">Update status</label>' +
+                        '<select class="form-input max-w-xs" id="order-status-' + Number(order.id) + '">' +
+                        ['pending', 'confirmed', 'completed', 'cancelled'].map(function (status) {
+                            return '<option value="' + status + '"' + (order.status === status ? ' selected' : '') + '>' + status.charAt(0).toUpperCase() + status.slice(1) + '</option>';
+                        }).join('') +
+                        '</select><button type="button" class="px-4 py-2 rounded-lg font-bold text-sm text-white" style="background:var(--primary)" onclick="updateOrderStatus(' + Number(order.id) + ')">Save</button>' +
                         '</div>' +
                         '</div>';
                 }).join('');

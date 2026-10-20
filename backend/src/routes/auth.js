@@ -57,7 +57,8 @@ router.post('/api/register', [
 
 router.post('/api/login', [
   body('username').isEmail().withMessage('Please enter a valid email'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('password').notEmpty().withMessage('Password is required'),
+  body('role').optional().isIn(['parent', 'staff', 'admin']).withMessage('Please select a valid account type')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -65,6 +66,7 @@ router.post('/api/login', [
   }
 
   const { username, password } = req.body;
+  const requestedRole = req.body.role || 'parent';
 
   try {
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
@@ -77,8 +79,14 @@ router.post('/api/login', [
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    const userRole = user.role === 'parent' ? 'customer' : user.role;
+    const expectedRole = requestedRole === 'parent' ? 'customer' : requestedRole;
+    if (userRole !== expectedRole) {
+      return res.status(403).json({ error: 'This account does not have access to the selected sign-in.' });
+    }
+
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, username: user.username, role: userRole },
       env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -91,7 +99,7 @@ router.post('/api/login', [
         username: user.username,
         full_name: user.full_name,
         phone: user.phone,
-        role: user.role
+        role: userRole
       }
     });
   } catch (error) {
