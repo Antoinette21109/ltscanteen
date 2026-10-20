@@ -7,6 +7,12 @@
     <title>Literacy Tree School Canteen - Online Ordering System</title>
     <meta name="description"
         content="Order nutritious meals for your children with ease. Literacy Tree School Canteen online ordering system.">
+    <meta name="theme-color" content="#1a472a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Literacy Tree Canteen">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/images/School-logo.webp" type="image/webp">
+    <link rel="apple-touch-icon" href="assets/images/school-logo.jpg">
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
         rel="stylesheet">
@@ -485,29 +491,26 @@
         }
 
         .hero-gradient {
-            background: linear-gradient(135deg, #1a472a 0%, #2d6138 30%, #3d7a4a 60%, #1a472a 100%);
-            background-size: 300% 300%;
-            animation: heroGradient 12s ease infinite;
+            background: #12331d;
         }
 
-        @keyframes heroGradient {
-            0% {
-                background-position: 0% 50%
-            }
-
-            50% {
-                background-position: 100% 50%
-            }
-
-            100% {
-                background-position: 0% 50%
-            }
+        .hero-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 55%;
         }
 
-        [data-theme="dark"] .hero-gradient {
-            background: linear-gradient(135deg, #0a1f11 0%, #12331d 30%, #162118 60%, #0e1a12 100%);
-            background-size: 300% 300%;
-            animation: heroGradient 12s ease infinite;
+        .hero-overlay {
+            background: linear-gradient(90deg, rgba(10, 31, 17, 0.94) 0%, rgba(10, 31, 17, 0.82) 48%, rgba(10, 31, 17, 0.5) 100%);
+        }
+
+        [data-theme="dark"] .hero-overlay {
+            background: linear-gradient(90deg, rgba(5, 18, 9, 0.96) 0%, rgba(5, 18, 9, 0.86) 48%, rgba(5, 18, 9, 0.62) 100%);
+        }
+
+        .hero-gradient .dots-pattern {
+            opacity: 0.1;
         }
 
         .dots-pattern {
@@ -807,7 +810,11 @@
     <main>
         <!-- Hero Section -->
         <section class="hero-gradient relative overflow-hidden" id="home">
-            <div class="dots-pattern absolute inset-0 opacity-30"></div>
+            <div class="hero-media absolute inset-0" aria-hidden="true">
+                <img src="https://i.postimg.cc/3wcX01Z0/rice-and-beef.jpg" alt="" fetchpriority="high">
+            </div>
+            <div class="hero-overlay absolute inset-0" aria-hidden="true"></div>
+            <div class="dots-pattern absolute inset-0"></div>
             <div class="absolute top-20 left-[10%] w-16 h-16 rounded-full opacity-20 float-1"
                 style="background:var(--accent)"></div>
             <div class="absolute top-40 right-[15%] w-24 h-24 rounded-full opacity-10 float-2"
@@ -3232,6 +3239,15 @@
                 closeReceipt();
             }
         });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('./sw.js').catch(function (error) {
+                    console.error('Service worker registration failed:', error);
+                });
+            });
+        }
     </script>
 </body>
 
