@@ -28,7 +28,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || '11fa26e29314717174ae8eed8f61f039d1a79773a9d84317f4a85588440a13906d970e7e196ed530df146a9ef5d72a2fc86decb4c1490cb0211b3bbba2819dfc';
 const BREAK_TIME = process.env.BREAK_TIME || '10:30';
 const BREAK_REMINDER_MINUTES = Number(process.env.BREAK_REMINDER_MINUTES || 30);
 const SCHOOL_TIME_ZONE = process.env.SCHOOL_TIME_ZONE || 'Africa/Lusaka';
