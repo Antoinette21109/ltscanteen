@@ -1,9 +1,12 @@
 window.LT_API_BASE_URL = 'https://ltscanteen.onrender.com';
 window.LT_FIREBASE_CONFIG = {
-    apiKey: 'REPLACE_WITH_FIREBASE_WEB_API_KEY',
-    authDomain: 'REPLACE_WITH_FIREBASE_PROJECT_ID.firebaseapp.com',
-    projectId: 'REPLACE_WITH_FIREBASE_PROJECT_ID',
-    appId: 'REPLACE_WITH_FIREBASE_WEB_APP_ID'
+  apiKey: "AIzaSyA68KBfRbLNywI7ajLFoaH8VbIYfVmeCPM",
+  authDomain: "ltscanteen-b0b31.firebaseapp.com",
+  projectId: "ltscanteen-b0b31",
+  storageBucket: "ltscanteen-b0b31.firebasestorage.app",
+  messagingSenderId: "854216719438",
+  appId: "1:854216719438:web:036a7541aa0d4bc62e171f",
+  measurementId: "G-9YTBQV0F06"
 };
 
 window.ltApiFetch = function (endpoint, options = {}) {
